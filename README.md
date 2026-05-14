@@ -97,27 +97,47 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
 ## 🧪 Contoh Request & Response
 
 ### 1. Collection (Mengambil Daftar Data)
-**Endpoint:** `GET /api/v1/kurikulum`  
-**Deskripsi:** Mengambil seluruh daftar mata kuliah yang tersedia.
+**Endpoint:** `GET /api/v1/nilai`  
+**Deskripsi:** Mengambil seluruh daftar nilai mahasiswa yang tersimpan di database.
 
 **Sample Response:**
 ```json
 {
   "status": "success",
+  "message": "Data nilai berhasil diambil",
   "data": [
     {
+      "id": 1,
+      "nim": "102022400136",
       "kode_matkul": "SI101",
-      "nama_matkul": "Pengantar Sistem Informasi",
+      "nama_matkul": "Algoritma dan Pemrograman",
+      "nilai_huruf": "A",
+      "nilai_angka": "4.00",
       "sks": 3,
-      "semester": 1
+      "semester": 1,
+      "tahun_ajaran": "2024/2025",
+      "created_at": "2026-05-14T18:37:11.000000Z",
+      "updated_at": "2026-05-14T18:37:11.000000Z"
     },
     {
-      "kode_matkul": "SI102",
-      "nama_matkul": "Algoritma Pemrograman",
-      "sks": 4,
-      "semester": 1
+      "id": 8,
+      "nim": "102022580023",
+      "kode_matkul": "SI101",
+      "nama_matkul": "Algoritma dan Pemrograman",
+      "nilai_huruf": "AB",
+      "nilai_angka": "3.50",
+      "sks": 3,
+      "semester": 1,
+      "tahun_ajaran": "2024/2025",
+      "created_at": "2026-05-14T18:47:22.000000Z",
+      "updated_at": "2026-05-14T18:47:22.000000Z"
     }
-  ]
+  ],
+  "meta": {
+    "service_name": "Prasyarat-Kurikulum-Service",
+    "api_version": "v1",
+    "total": 10
+  }
 }
 ```
 
@@ -125,25 +145,32 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
 
 ### 2. Resource (Mengambil Data Spesifik)
 **Endpoint:** `GET /api/v1/nilai/102022580023`  
-**Deskripsi:** Mengambil detail nilai dan IPS mahasiswa berdasarkan NIM.
+**Deskripsi:** Mengambil detail nilai dan perhitungan IPS mahasiswa tertentu.
 
 **Sample Response:**
 ```json
 {
   "status": "success",
-  "message": "Data nilai ditemukan",
+  "message": "Data nilai untuk NIM 102022580023 ditemukan",
   "data": {
     "nim": "102022580023",
-    "ips": 3.75,
+    "ips": 3.65,
     "total_sks": 20,
     "data_nilai": [
       {
+        "id": 8,
         "kode_matkul": "SI101",
-        "nama_matkul": "Pengantar Sistem Informasi",
-        "nilai_huruf": "A",
-        "sks": 3
+        "nama_matkul": "Algoritma dan Pemrograman",
+        "nilai_huruf": "AB",
+        "nilai_angka": 3.5,
+        "sks": 3,
+        "created_at": "2026-05-14T18:47:22.000000Z"
       }
     ]
+  },
+  "meta": {
+    "service_name": "Prasyarat-Kurikulum-Service",
+    "api_version": "v1"
   }
 }
 ```
@@ -166,15 +193,16 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
 }
 ```
 
-**Sample Response (Success):**
+**Sample Response:**
 ```json
 {
   "status": "success",
   "message": "Data nilai berhasil dicatat",
   "data": {
+    "id": 11,
     "nim": "102022580023",
     "kode_matkul": "SI301",
-    "nilai_huruf": "A"
+    "created_at": "2026-05-15T02:30:00.000000Z"
   }
 }
 ```
