@@ -94,4 +94,70 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
 
 ---
 
+## 🧪 Contoh Request & Response
+
+### 1. REST API: Lihat Nilai (GET)
+**Endpoint:** `/api/v1/nilai/102022580023`  
+**Header:** `X-IAE-KEY: 102022580023`
+
+**Sample Response:**
+```json
+{
+  "status": "success",
+  "message": "Data nilai ditemukan",
+  "data": {
+    "nim": "102022580023",
+    "ips": 3.75,
+    "total_sks": 20,
+    "data_nilai": [
+      {
+        "kode_matkul": "SI101",
+        "nama_matkul": "Pengantar Sistem Informasi",
+        "nilai_huruf": "A",
+        "nilai_angka": 4,
+        "sks": 3
+      },
+      {
+        "kode_matkul": "SI102",
+        "nama_matkul": "Algoritma Pemrograman",
+        "nilai_huruf": "B+",
+        "nilai_angka": 3.5,
+        "sks": 4
+      }
+    ]
+  }
+}
+```
+
+### 2. GraphQL: Query Detail Kurikulum
+**Query:**
+```graphql
+query {
+  kurikulum(kode_matkul: "SI201") {
+    nama_matkul
+    sks
+    semester
+    prasyarat
+    deskripsi
+  }
+}
+```
+
+**Sample Response:**
+```json
+{
+  "data": {
+    "kurikulum": {
+      "nama_matkul": "Struktur Data",
+      "sks": 3,
+      "semester": 3,
+      "prasyarat": "Algoritma Pemrograman",
+      "deskripsi": "Mempelajari struktur penyimpanan data efisien."
+    }
+  }
+}
+```
+
+---
+
 *Dibuat untuk memenuhi tugas mata kuliah Integrasi Aplikasi Enterprise.*
