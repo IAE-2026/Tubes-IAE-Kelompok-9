@@ -96,9 +96,36 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
 
 ## 🧪 Contoh Request & Response
 
-### 1. REST API: Lihat Nilai (GET)
-**Endpoint:** `/api/v1/nilai/102022580023`  
-**Header:** `X-IAE-KEY: 102022580023`
+### 1. Collection (Mengambil Daftar Data)
+**Endpoint:** `GET /api/v1/kurikulum`  
+**Deskripsi:** Mengambil seluruh daftar mata kuliah yang tersedia.
+
+**Sample Response:**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "kode_matkul": "SI101",
+      "nama_matkul": "Pengantar Sistem Informasi",
+      "sks": 3,
+      "semester": 1
+    },
+    {
+      "kode_matkul": "SI102",
+      "nama_matkul": "Algoritma Pemrograman",
+      "sks": 4,
+      "semester": 1
+    }
+  ]
+}
+```
+
+---
+
+### 2. Resource (Mengambil Data Spesifik)
+**Endpoint:** `GET /api/v1/nilai/102022580023`  
+**Deskripsi:** Mengambil detail nilai dan IPS mahasiswa berdasarkan NIM.
 
 **Sample Response:**
 ```json
@@ -114,22 +141,49 @@ Setiap request ke API wajib menyertakan header keamanan berikut:
         "kode_matkul": "SI101",
         "nama_matkul": "Pengantar Sistem Informasi",
         "nilai_huruf": "A",
-        "nilai_angka": 4,
         "sks": 3
-      },
-      {
-        "kode_matkul": "SI102",
-        "nama_matkul": "Algoritma Pemrograman",
-        "nilai_huruf": "B+",
-        "nilai_angka": 3.5,
-        "sks": 4
       }
     ]
   }
 }
 ```
 
-### 2. GraphQL: Query Detail Kurikulum
+---
+
+### 3. Action (Menambah Data / Memicu Proses)
+**Endpoint:** `POST /api/v1/nilai`  
+**Body (JSON):**
+```json
+{
+  "nim": "102022580023",
+  "kode_matkul": "SI301",
+  "nama_matkul": "Basis Data",
+  "nilai_huruf": "A",
+  "nilai_angka": 4,
+  "sks": 3,
+  "semester": 3,
+  "tahun_ajaran": "2025/2026"
+}
+```
+
+**Sample Response (Success):**
+```json
+{
+  "status": "success",
+  "message": "Data nilai berhasil dicatat",
+  "data": {
+    "nim": "102022580023",
+    "kode_matkul": "SI301",
+    "nilai_huruf": "A"
+  }
+}
+```
+
+---
+
+## 🔗 GraphQL Showcase
+Gunakan GraphiQL IDE di `/graphiql` untuk melakukan query yang lebih fleksibel.
+
 **Query:**
 ```graphql
 query {
@@ -138,22 +192,6 @@ query {
     sks
     semester
     prasyarat
-    deskripsi
-  }
-}
-```
-
-**Sample Response:**
-```json
-{
-  "data": {
-    "kurikulum": {
-      "nama_matkul": "Struktur Data",
-      "sks": 3,
-      "semester": 3,
-      "prasyarat": "Algoritma Pemrograman",
-      "deskripsi": "Mempelajari struktur penyimpanan data efisien."
-    }
   }
 }
 ```
