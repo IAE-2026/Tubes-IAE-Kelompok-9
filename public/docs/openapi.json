@@ -1,0 +1,370 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "KRS-Service API",
+    "version": "1.0.0",
+    "description": "API Pencatatan KRS Mahasiswa untuk IAE Tugas 2."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8002",
+      "description": "Local Docker"
+    }
+  ],
+  "security": [
+    {
+      "IaeApiKey": []
+    }
+  ],
+  "paths": {
+    "/api/v1/krs": {
+      "get": {
+        "summary": "Mengambil seluruh data KRS",
+        "tags": ["KRS"],
+        "responses": {
+          "200": {
+            "description": "Data KRS berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessKrsListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Mencatat pengambilan mata kuliah mahasiswa",
+        "description": "Sebelum menyimpan data, service memanggil Service Mahasiswa dan Service Nilai/Kurikulum melalui HTTP.",
+        "tags": ["KRS"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKrsRequest"
+              },
+              "example": {
+                "nim": "102022400045",
+                "kode_mata_kuliah": "IAE401",
+                "tahun_ajaran": "2025/2026",
+                "semester": "ganjil",
+                "catatan": "Pengambilan KRS semester baru"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "KRS berhasil dicatat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessKrsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "$ref": "#/components/responses/ExternalServiceError"
+          }
+        }
+      }
+    },
+    "/api/v1/krs/{id}": {
+      "get": {
+        "summary": "Mengambil detail KRS berdasarkan ID",
+        "tags": ["KRS"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail KRS berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessKrsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/krs/semester/{tahunAjaran}/{semester}": {
+      "get": {
+        "summary": "Mengambil data KRS berdasarkan tahun ajaran dan semester",
+        "description": "Gunakan format tahun ajaran dengan tanda minus pada path, contoh 2025-2026, karena slash dipakai sebagai pemisah URL.",
+        "tags": ["KRS"],
+        "parameters": [
+          {
+            "name": "tahunAjaran",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2025-2026"
+            }
+          },
+          {
+            "name": "semester",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["ganjil", "genap", "pendek"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data KRS semester berhasil diambil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessKrsListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "IaeApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IAE-KEY",
+        "description": "Gunakan NIM pemilik service: 102022400045"
+      }
+    },
+    "schemas": {
+      "CreateKrsRequest": {
+        "type": "object",
+        "required": ["nim", "kode_mata_kuliah", "tahun_ajaran", "semester"],
+        "properties": {
+          "nim": {
+            "type": "string",
+            "example": "102022400045"
+          },
+          "kode_mata_kuliah": {
+            "type": "string",
+            "example": "IAE401"
+          },
+          "nama_mata_kuliah": {
+            "type": "string",
+            "nullable": true,
+            "example": "Integrasi Aplikasi Enterprise"
+          },
+          "sks": {
+            "type": "integer",
+            "nullable": true,
+            "example": 3
+          },
+          "tahun_ajaran": {
+            "type": "string",
+            "example": "2025/2026"
+          },
+          "semester": {
+            "type": "string",
+            "enum": ["ganjil", "genap", "pendek"]
+          },
+          "catatan": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Krs": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "nim": {
+            "type": "string",
+            "example": "102022400045"
+          },
+          "kode_mata_kuliah": {
+            "type": "string",
+            "example": "IAE401"
+          },
+          "nama_mata_kuliah": {
+            "type": "string",
+            "example": "Integrasi Aplikasi Enterprise"
+          },
+          "sks": {
+            "type": "integer",
+            "example": 3
+          },
+          "tahun_ajaran": {
+            "type": "string",
+            "example": "2025/2026"
+          },
+          "semester": {
+            "type": "string",
+            "example": "ganjil"
+          },
+          "status_persetujuan": {
+            "type": "string",
+            "example": "pending"
+          },
+          "catatan": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SuccessKrsResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Operasi berhasil"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Krs"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "SuccessKrsListResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string",
+            "example": "Data KRS berhasil diambil."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Krs"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        }
+      },
+      "Meta": {
+        "type": "object",
+        "properties": {
+          "service_name": {
+            "type": "string",
+            "example": "KRS-Service"
+          },
+          "api_version": {
+            "type": "string",
+            "example": "v1"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Detail pesan kesalahan..."
+          },
+          "errors": {
+            "nullable": true
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "API key tidak valid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Data tidak ditemukan",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Validasi gagal",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ExternalServiceError": {
+        "description": "Service eksternal tidak dapat dihubungi atau gagal memvalidasi data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}

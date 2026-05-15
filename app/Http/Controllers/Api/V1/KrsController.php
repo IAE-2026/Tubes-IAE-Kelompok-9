@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\Krs;
+use App\Services\ExternalAcademicService;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Validator;
+
+class KrsController extends Controller
+{
+    public function index(): JsonResponse
+    {
+        return ApiResponse::success(
+            Krs::query()->latest()->get(),
+            'Data KRS berhasil diambil.'
+        );
+    }
+
+    public function bySemester(string $tahunAjaran, string $semester): JsonResponse
+    {
+        $tahunAjaran = str_replace('-', '/', $tahunAjaran);
+        $semester = strtolower($semester);
+
+        $data = Krs::query()
+            ->where('tahun_ajaran', $tahunAjaran)
+            ->where('semester', $semester)
+            ->latest()
+            ->get();
+
+        return ApiResponse::success($data, 'Data KRS semester berhasil diambil.');
+    }
+
+    public function show(string $id): JsonResponse
+    {
+        $krs = Krs::query()->find($id);
+
+        if (! $krs) {
+            return ApiResponse::error('Data KRS tidak ditemukan.', null, 404);
+        }
+
+        return ApiResponse::success($krs, 'Detail KRS berhasil diambil.');
+    }
+
+    public function store(Request $request, ExternalAcademicService $academicService): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'nim' => ['required', 'string', 'max:20'],
+            'kode_mata_kuliah' => ['required', 'string', 'max:30'],
+            'nama_mata_kuliah' => ['nullable', 'string', 'max:120'],
+            'sks' => ['nullable', 'integer', 'min:1', 'max:6'],
+            'tahun_ajaran' => ['required', 'regex:/^\d{4}\/\d{4}$/'],
+            'semester' => ['required', 'in:ganjil,genap,pendek'],
+            'catatan' => ['nullable', 'string', 'max:500'],
+        ], [
+            'required' => ':attribute wajib diisi.',
+            'regex' => ':attribute harus menggunakan format 2025/2026.',
+            'in' => ':attribute tidak valid.',
+        ]);
+
+        if ($validator->fails()) {
+            return ApiResponse::error('Validasi gagal.', $validator->errors(), 422);
+        }
+
+        $validated = $validator->validated();
+        $integration = $academicService->validateKrsRequest($validated);
+
+        if (! $integration['ok']) {
+            return ApiResponse::error(
+                $integration['message'],
+                $integration['errors'] ?? null,
+                $integration['status']
+            );
+        }
+
+        $kurikulum = $integration['kurikulum'] ?? [];
+        $namaMataKuliah = $validated['nama_mata_kuliah']
+            ?? Arr::get($kurikulum, 'nama_mata_kuliah')
+            ?? Arr::get($kurikulum, 'nama')
+            ?? Arr::get($kurikulum, 'nama_mk');
+        $sks = $validated['sks'] ?? Arr::get($kurikulum, 'sks');
+
+        if (! $namaMataKuliah || ! $sks) {
+            return ApiResponse::error(
+                'Data mata kuliah dari Service Kurikulum belum lengkap.',
+                ['nama_mata_kuliah' => ['Nama mata kuliah wajib tersedia.'], 'sks' => ['SKS wajib tersedia.']],
+                422
+            );
+        }
+
+        $krs = Krs::query()->create([
+            'nim' => $validated['nim'],
+            'kode_mata_kuliah' => $validated['kode_mata_kuliah'],
+            'nama_mata_kuliah' => $namaMataKuliah,
+            'sks' => $sks,
+            'tahun_ajaran' => $validated['tahun_ajaran'],
+            'semester' => $validated['semester'],
+            'status_persetujuan' => 'pending',
+            'catatan' => $validated['catatan'] ?? null,
+        ]);
+
+        return ApiResponse::success($krs, 'KRS berhasil dicatat dan menunggu persetujuan dosen.', 201);
+    }
+}

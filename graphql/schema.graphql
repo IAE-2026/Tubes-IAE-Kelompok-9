@@ -1,0 +1,18 @@
+type Krs {
+  id: ID!
+  nim: String!
+  kode_mata_kuliah: String!
+  nama_mata_kuliah: String!
+  sks: Int!
+  tahun_ajaran: String!
+  semester: String!
+  status_persetujuan: String!
+  catatan: String
+  created_at: String
+  updated_at: String
+}
+
+type Query {
+  krsList: [Krs!]!
+  krs(id: ID!): Krs
+}
