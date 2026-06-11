@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    'iae' => [
+        'url' => env('IAE_SSO_URL', 'https://iae-sso.virtualfri.id'),
+        'api_key' => env('IAE_API_KEY'),
+        'team_id' => env('IAE_TEAM_ID', 'TIM-09'),
+        'warga_email' => env('IAE_WARGA_EMAIL'),
+        'warga_password' => env('IAE_WARGA_PASSWORD'),
+        'token' => env('IAE_SSO_TOKEN'),
+        'token_expires_at' => env('IAE_SSO_TOKEN_EXPIRES_AT'),
+        'soap_audit_url' => env('IAE_SOAP_AUDIT_URL', 'https://iae-sso.virtualfri.id/soap/v1/audit'),
+        'rabbitmq_publish_url' => env('IAE_RABBITMQ_PUBLISH_URL', 'https://iae-sso.virtualfri.id/api/v1/messages/publish'),
+        'default_role' => env('IAE_DEFAULT_ROLE', 'mahasiswa'),
+        'allowed_nilai_roles' => ['dosen', 'admin'],
+        'role_map' => [
+            'warga01@ktp.iae.id' => 'dosen',
+        ],
+    ],
+
 ];

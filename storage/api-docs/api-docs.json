@@ -310,7 +310,7 @@
                     "Nilai"
                 ],
                 "summary": "Catat nilai mahasiswa setelah semester selesai",
-                "description": "Menambahkan data nilai mahasiswa baru. Saat POST, Service C akan memanggil Service A (GET /mahasiswa/{nim}) untuk validasi bahwa mahasiswa masih aktif.",
+                "description": "Menambahkan data nilai mahasiswa baru. Memerlukan Bearer JWT IAE SSO (role dosen/admin). Setelah tersimpan, transaksi diaudit via SOAP legacy dan disebarkan ke RabbitMQ sebagai event nilai.recorded.",
                 "operationId": "storeNilai",
                 "requestBody": {
                     "required": true,
@@ -384,6 +384,24 @@
                                             "example": "Nilai mahasiswa berhasil dicatat"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "nim": {
+                                                    "type": "string",
+                                                    "example": "102022580023"
+                                                },
+                                                "receipt_number": {
+                                                    "type": "string",
+                                                    "example": "IAE-LOG-2026-8891A7BC"
+                                                },
+                                                "event_published": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -399,12 +417,21 @@
                         "description": "Mahasiswa tidak aktif atau tidak ditemukan di Service A"
                     },
                     "401": {
-                        "description": "Unauthorized - API Key tidak valid"
+                        "description": "Unauthorized - API Key atau JWT tidak valid"
+                    },
+                    "403": {
+                        "description": "Forbidden - Role tidak diizinkan"
+                    },
+                    "502": {
+                        "description": "Integrasi SOAP/RabbitMQ gagal"
                     }
                 },
                 "security": [
                     {
                         "X-IAE-KEY": []
+                    },
+                    {
+                        "bearerAuth": []
                     }
                 ]
             }
@@ -526,6 +553,12 @@
                 "description": "Masukkan NIM sebagai API Key (102022580023)",
                 "name": "X-IAE-KEY",
                 "in": "header"
+            },
+            "bearerAuth": {
+                "type": "http",
+                "description": "Bearer JWT dari IAE SSO (https://iae-sso.virtualfri.id/api/v1/auth/token)",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },

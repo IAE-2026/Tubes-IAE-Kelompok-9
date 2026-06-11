@@ -15,6 +15,8 @@ class Nilai extends Model
         'sks',
         'semester',
         'tahun_ajaran',
+        'receipt_number',
+        'recorded_by',
     ];
 
     /**

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Dev as Developer
+    participant Cmd as artisan iae:sync-token
+    participant Env as File .env
+    participant SSO as iae-sso.virtualfri.id
+
+    Dev->>Cmd: php artisan iae:sync-token
+    Cmd->>Env: Baca IAE_API_KEY=KEY-MHS-117
+    Cmd->>SSO: POST /api/v1/auth/token
+    alt M2M key aktif
+        SSO-->>Cmd: 200 token M2M
+    else M2M 401 Unauthorized
+        Cmd->>SSO: POST /api/v1/auth/token fallback warga01
+        SSO-->>Cmd: 200 token user
+    end
+    Cmd->>Env: Tulis IAE_SSO_TOKEN + IAE_SSO_TOKEN_EXPIRES_AT
+    Cmd-->>Dev: Token synced

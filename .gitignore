@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Cursor / Agent tooling (local IDE)
+/.agents
+/.cursor
+skills-lock.json
