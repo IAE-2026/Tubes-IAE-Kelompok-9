@@ -116,9 +116,9 @@ Saat testing, board menampilkan pengirim dari tim saya TEAM-09.
 
 ## 5. Sequence Diagram
 
-5a. Bootstrap Token Otomatis — Saya tidak isi IAE_SSO_TOKEN manual di .env. Cukup jalankan php artisan iae:sync-token dari terminal Mac, bukan lewat sail. Perintah itu ambil token dari Cloud Pusat pakai KEY-MHS-117, kalau belum aktif fallback ke warga01, lalu tulis otomatis ke .env. Token itu dipakai server buat SOAP dan RabbitMQ, bukan JWT dosen di Postman. Gambar: docs/images/seq-4a-bootstrap-token.png
+5a. Bootstrap Token Otomatis — Saya tidak isi IAE_SSO_TOKEN manual di .env. Cukup jalankan php artisan iae:sync-token dari terminal Mac, bukan lewat sail. Perintah itu ambil token dari Cloud Pusat pakai KEY-MHS-117, kalau belum aktif fallback ke warga01, lalu update otomatis ke .env. Token itu dipakai server buat SOAP dan RabbitMQ, bukan JWT dosen di Postman. Gambar: docs/images/bootstrap-token-sync.png
 
-5b. Transaksi Kritis POST /nilai — Dosen login via Postman dapat JWT, kirim POST /api/v1/nilai dengan X-IAE-KEY dan Bearer JWT. Service C verifikasi SSO, simpan nilai ke MySQL, kirim SOAP audit, publish nilai.recorded, lalu balas 201 dengan receipt_number. Gambar: docs/images/seq-4b-post-nilai.png
+5b. Transaksi Kritis POST /nilai — Dosen login via Postman dapat JWT, kirim POST /api/v1/nilai dengan X-IAE-KEY dan Bearer JWT. Service C verifikasi SSO, simpan nilai ke MySQL, kirim SOAP audit, publish nilai.recorded, lalu balas 201 dengan receipt_number. Gambar: docs/images/post-nilai-flow.png
 
 ---
 
