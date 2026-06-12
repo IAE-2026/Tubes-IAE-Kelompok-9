@@ -32,5 +32,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="IAE_API_KEY" value="102022400045"/>
+        <env name="SSO_INTEGRATION_ENABLED" value="false"/>
     </php>
 </phpunit>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\GraphqlController;
+use App\Http\Middleware\EnsureIaeApiKey;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,4 +14,4 @@ Route::get('/docs/openapi.json', function () {
 });
 Route::view('/graphiql', 'docs.graphiql');
 Route::post('/graphql', [GraphqlController::class, 'handle'])
-    ->middleware(\App\Http\Middleware\EnsureIaeApiKey::class);
+    ->middleware(EnsureIaeApiKey::class);

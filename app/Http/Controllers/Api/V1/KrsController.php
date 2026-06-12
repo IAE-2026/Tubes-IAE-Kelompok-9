@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Krs;
+use App\Services\CentralSsoClient;
 use App\Services\ExternalAcademicService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class KrsController extends Controller
@@ -46,8 +48,11 @@ class KrsController extends Controller
         return ApiResponse::success($krs, 'Detail KRS berhasil diambil.');
     }
 
-    public function store(Request $request, ExternalAcademicService $academicService): JsonResponse
-    {
+    public function store(
+        Request $request,
+        ExternalAcademicService $academicService,
+        CentralSsoClient $ssoClient
+    ): JsonResponse {
         $validator = Validator::make($request->all(), [
             'nim' => ['required', 'string', 'max:20'],
             'kode_mata_kuliah' => ['required', 'string', 'max:30'],
@@ -123,6 +128,94 @@ class KrsController extends Controller
             'catatan' => $validated['catatan'] ?? null,
         ]);
 
+        if (config('iae.sso.integration_enabled', true)) {
+            // Send SOAP Audit Log
+            $receiptNumber = $ssoClient->sendAuditLog('KrsCreated', [
+                'krs_id' => $krs->id,
+                'nim' => $krs->nim,
+                'kode_mata_kuliah' => $krs->kode_mata_kuliah,
+                'nama_mata_kuliah' => $krs->nama_mata_kuliah,
+                'sks' => $krs->sks,
+                'tahun_ajaran' => $krs->tahun_ajaran,
+                'semester' => $krs->semester,
+                'status_persetujuan' => 'pending',
+            ]);
+
+            if ($receiptNumber) {
+                $krs->update([
+                    'receipt_number' => $receiptNumber,
+                ]);
+            }
+
+            // Publish message to RabbitMQ via central gateway (AMQP Publisher)
+            $ssoClient->publishMessage('krs.created', [
+                'krs_id' => $krs->id,
+                'nim' => $krs->nim,
+                'kode_mata_kuliah' => $krs->kode_mata_kuliah,
+                'nama_mata_kuliah' => $krs->nama_mata_kuliah,
+                'sks' => $krs->sks,
+                'tahun_ajaran' => $krs->tahun_ajaran,
+                'semester' => $krs->semester,
+                'status_persetujuan' => 'pending',
+                'receipt_number' => $receiptNumber,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        }
+
         return ApiResponse::success($krs, 'KRS berhasil dicatat dan menunggu persetujuan dosen.', 201);
+    }
+
+    public function approve(string $id, CentralSsoClient $ssoClient): JsonResponse
+    {
+        $krs = Krs::query()->find($id);
+
+        if (! $krs) {
+            return ApiResponse::error('Data KRS tidak ditemukan.', null, 404);
+        }
+
+        if ($krs->status_persetujuan !== 'pending') {
+            return ApiResponse::error('KRS sudah diproses.', null, 422);
+        }
+
+        $krs->update([
+            'status_persetujuan' => 'approved',
+        ]);
+
+        if (config('iae.sso.integration_enabled', true)) {
+            // Send SOAP Audit Log for Approval
+            $receiptNumber = $ssoClient->sendAuditLog('KrsApproved', [
+                'krs_id' => $krs->id,
+                'nim' => $krs->nim,
+                'kode_mata_kuliah' => $krs->kode_mata_kuliah,
+                'nama_mata_kuliah' => $krs->nama_mata_kuliah,
+                'sks' => $krs->sks,
+                'tahun_ajaran' => $krs->tahun_ajaran,
+                'semester' => $krs->semester,
+                'status_persetujuan' => 'approved',
+                'processed_by' => Auth::user() ? Auth::user()->email : 'System',
+            ]);
+
+            if ($receiptNumber) {
+                $krs->update([
+                    'receipt_number' => $receiptNumber,
+                ]);
+            }
+
+            // Publish approval message to RabbitMQ
+            $ssoClient->publishMessage('krs.approved', [
+                'krs_id' => $krs->id,
+                'nim' => $krs->nim,
+                'kode_mata_kuliah' => $krs->kode_mata_kuliah,
+                'nama_mata_kuliah' => $krs->nama_mata_kuliah,
+                'sks' => $krs->sks,
+                'tahun_ajaran' => $krs->tahun_ajaran,
+                'semester' => $krs->semester,
+                'status_persetujuan' => 'approved',
+                'receipt_number' => $receiptNumber,
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        }
+
+        return ApiResponse::success($krs, 'KRS berhasil disetujui.');
     }
 }

@@ -17,6 +17,7 @@ class Krs extends Model
         'semester',
         'status_persetujuan',
         'catatan',
+        'receipt_number',
     ];
 
     protected function casts(): array
