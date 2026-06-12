@@ -1,85 +1,30 @@
-# Analisis Tugas 3 — Service C (Kurikulum & Nilai)
+# Analisis Tugas 3 — Service C Kurikulum dan Nilai
 
-**Mahasiswa:** Andi Muh. Arif Darma Saputra M  
-**NIM:** 102022580023  
-**Tim Lab:** TIM-09  
-**Layanan:** Service C — Validasi Prasyarat & Kurikulum  
-**Cloud Pusat:** https://iae-sso.virtualfri.id
+Mahasiswa: Andi Muh. Arif Darma Saputra M  
+NIM: 102022580023  
+Tim Lab: TIM-09  
+Layanan: Service C Validasi Prasyarat dan Kurikulum  
+Cloud Pusat: https://iae-sso.virtualfri.id
 
 ---
 
 ## 1. Justifikasi Transaksi Kritis
 
-Di Service C saya ada tiga endpoint utama. Dari ketiganya, hanya **`POST /api/v1/nilai`** yang dipakai untuk integrasi Tugas 3. Endpoint GET (`/api/v1/kurikulum` dan `/api/v1/nilai`) cuma baca data, jadi tidak perlu audit SOAP maupun broadcast RabbitMQ.
+Service C punya tiga endpoint utama. Yang saya pakai buat Tugas 3 cuma POST /api/v1/nilai, karena endpoint itu yang benar-benar nambah data nilai baru ke database. GET /api/v1/kurikulum dan GET /api/v1/nilai cuma baca data, jadi menurut saya tidak perlu audit SOAP maupun broadcast RabbitMQ.
 
-### Transaksi Penting (SOAP): `POST /api/v1/nilai`
-
-Endpoint ini menambah data nilai baru ke database. Karena datanya resmi dan dipakai untuk IPS, prasyarat, dan kelulusan, setiap pencatatan nilai wajib diberi jejak audit ke Cloud Pusat lewat SOAP. Setelah audit berhasil, server mengembalikan **`ReceiptNumber`** sebagai bukti. Contoh dari testing saya: `IAE-LOG-2026-828A266C`.
-
-### Transaksi yang Disebarkan (RabbitMQ): `POST /api/v1/nilai`
-
-Transaksi yang sama juga perlu disebar ke service lain. Setelah nilai tersimpan dan audit SOAP selesai, Service C mengirim event **`nilai.recorded`** ke Cloud Pusat agar unit lain seperti KRS, wisuda, atau laporan tahu ada nilai baru tanpa harus mengecek Service C terus-menerus.
-
-Alur singkatnya: user login SSO → kirim POST /nilai → data disimpan → audit SOAP → publish RabbitMQ → response sukses dengan receipt number.
+Untuk transaksi penting SOAP, saya pilih POST /api/v1/nilai. Setiap nilai dicatat, Service C kirim audit ke Cloud Pusat dan dapat ReceiptNumber sebagai bukti. Contoh dari testing saya: IAE-LOG-2026-828A266C. Untuk transaksi yang harus disebar lewat RabbitMQ, saya pakai endpoint yang sama. Setelah audit SOAP selesai, Service C publish event nilai.recorded ke Cloud Pusat supaya service lain tahu ada nilai baru. Alurnya: login SSO, POST /nilai, simpan DB, audit SOAP, publish RabbitMQ, lalu response sukses.
 
 ---
 
-## 2. Integrasi Federated SSO
+## 2. Token, Key, dan SSO
 
-Sebelum bisa input nilai, user harus login dulu lewat Cloud Pusat dan dapat JWT. Service C memverifikasi token tersebut, lalu mengecek role lokal.
+Sebelum input nilai, user harus login ke Cloud Pusat dulu dan dapat JWT. Service C verifikasi JWT itu, lalu cek role lokal. Yang boleh input nilai cuma dosen dan admin. Akun warga01@ktp.iae.id saya mapping sebagai dosen buat testing di Postman.
 
-Yang boleh input nilai hanya role **dosen** dan **admin**. Role **mahasiswa** dan **guest** ditolak. Untuk keperluan lab, akun `warga01@ktp.iae.id` dimapping sebagai dosen sehingga bisa dipakai testing lewat Swagger.
+Awalnya saya juga bingung karena kayanya banyak key sekaligus. Setelah dicoba, ternyata beda fungsi. X-IAE-KEY itu bukan token, cuma NIM saya 102022580023 di header setiap request ke Service C. JWT dosen dari login warga01, dipakai sebagai Bearer saat POST /nilai, dan tidak diambil dari .env. KEY-MHS-117 adalah API Key tim, dipakai server lewat perintah php artisan iae:sync-token buat dapat IAE_SSO_TOKEN di .env. Token .env itu yang dipakai Service C saat kirim SOAP dan RabbitMQ ke Cloud Pusat.
 
-### Token yang Dipakai di Swagger
+X-IAE-KEY tidak bisa diganti KEY-MHS-117 meskipun sama-sama disebut key. Middleware CheckIaeKey di Service C cuma terima NIM 102022580023. Kalau di Postman isi KEY-MHS-117, langsung 401. NIM di header X-IAE-KEY juga beda dengan NIM di body POST /nilai. Header tetap NIM saya, body bisa NIM mahasiswa lain misalnya 2099000020. Jadi layer masuk ke Service C pakai X-IAE-KEY plus JWT, layer keluar ke Cloud Pusat pakai token dari sync-token.
 
-Saat testing lewat Swagger, ada dua hal yang perlu di-authorize — keduanya **bukan** token dari `IAE_SSO_TOKEN` di `.env`.
-
-**1. X-IAE-KEY** — ini bukan token, melainkan NIM saya: `102022580023`. Dipakai sebagai identitas service saat akses API Service C. Di Swagger, isi **Authorize → X-IAE-KEY** dengan NIM ini.
-
-**2. bearerAuth (JWT)** — ini token login user dari Cloud Pusat. Cara dapatnya: login pakai akun warga01 ke `POST /api/v1/auth/token` di Cloud Pusat, lalu copy JWT yang dikembalikan. Token ini dipaste di Swagger bagian **Authorize → bearerAuth**. JWT ini bukti bahwa yang input nilai adalah dosen yang sudah login SSO.
-
-Perintah buat dapat JWT untuk Swagger:
-
-```bash
-curl -X POST "https://iae-sso.virtualfri.id/api/v1/auth/token" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"warga01@ktp.iae.id","password":"KtpDigital2026!"}'
-```
-
-Dari response JSON, copy nilai field **`token`** lalu paste ke Swagger → **Authorize → bearerAuth**.
-
-### API Key Tim (`KEY-MHS-117`)
-
-Selain JWT dan X-IAE-KEY, ada satu key lagi: **API Key M2M** tim saya yaitu `KEY-MHS-117`. Key ini disimpan di `.env` sebagai `IAE_API_KEY` dan **tidak dipakai di Swagger**.
-
-Fungsinya: Service C pakai API Key ini buat minta token ke Cloud Pusat secara otomatis (machine-to-machine). Token hasilnya masuk ke `IAE_SSO_TOKEN` lewat command `iae:sync-token`, lalu dipakai internal saat kirim SOAP audit dan publish RabbitMQ. Jadi identitas yang muncul di board RabbitMQ adalah tim **TIM-09 / TEAM-09**, bukan akun warga01.
-
-Perintah cek apakah API Key sudah aktif:
-
-```bash
-curl -s -X POST "https://iae-sso.virtualfri.id/api/v1/auth/token" \
-  -H "Content-Type: application/json" \
-  -d '{"api_key":"KEY-MHS-117"}'
-```
-
-Kalau balas **HTTP 200** berarti API Key aktif. Kalau **401** berarti belum aktif — saat sync token, sistem otomatis fallback ke login warga01.
-
-Perintah sync token outbound ke `.env` (pakai API Key di atas):
-
-```bash
-php artisan iae:sync-token
-```
-
-### Perbedaan Singkat
-
-| | Nilai | Dipakai di | Fungsi |
-|---|---|---|---|
-| **X-IAE-KEY** | `102022580023` (NIM) | Swagger | Identitas service saat akses API Service C |
-| **JWT (bearerAuth)** | Dari login warga01 | Swagger | Bukti user sudah SSO, buat POST /nilai |
-| **API Key M2M** | `KEY-MHS-117` | `.env` saja | Service C minta token outbound ke Cloud Pusat |
-| **IAE_SSO_TOKEN** | Auto dari sync-token | `.env` saja | Service C kirim SOAP & RabbitMQ ke Cloud Pusat |
-
-Contoh response sukses setelah POST /nilai:
+Contoh response sukses POST /nilai:
 
 ```json
 {
@@ -106,11 +51,7 @@ Contoh response sukses setelah POST /nilai:
 
 ## 3. Integrasi SOAP Audit
 
-Setelah nilai tersimpan, Service C mengirim log audit ke Cloud Pusat lewat SOAP. Data yang dikirim mencakup NIM, kode mata kuliah, dan nilai huruf. Cloud Pusat membalas dengan status sukses dan **`ReceiptNumber`**.
-
-Receipt number ini disimpan bersama data nilai, jadi setiap pencatatan nilai punya bukti audit yang bisa dilacak. Di implementasi saya, audit memakai `TeamID=TIM-09` dan `ActivityName=NilaiRecorded`.
-
-Contoh isi log yang dikirim (format JSON di dalam SOAP):
+Setelah nilai tersimpan, Service C kirim log audit ke Cloud Pusat lewat SOAP dengan TeamID TIM-09 dan ActivityName NilaiRecorded. Cloud Pusat balas ReceiptNumber yang saya simpan di database. Contoh isi log di dalam SOAP:
 
 ```json
 {
@@ -127,11 +68,7 @@ Contoh isi log yang dikirim (format JSON di dalam SOAP):
 
 ## 4. Integrasi RabbitMQ
 
-Setelah audit SOAP berhasil, Service C mempublish event **`nilai.recorded`** ke Cloud Pusat. Event ini muncul di board RabbitMQ dan bisa dilihat di https://iae-sso.virtualfri.id/board dengan badge hijau `nilai.recorded`.
-
-Saya pilih nama event `nilai.recorded` karena lebih sesuai konteks akademik — artinya nilai sudah resmi dicatat, bukan sekadar dibuat.
-
-Contoh payload event (hasil testing nyata):
+Setelah SOAP sukses, Service C publish event nilai.recorded ke Cloud Pusat. Event muncul di https://iae-sso.virtualfri.id/board dengan badge hijau. Saya pakai nama nilai.recorded karena menurut saya lebih pas artinya nilai sudah resmi dicatat. Contoh payload dari testing:
 
 ```json
 {
@@ -154,7 +91,7 @@ Contoh payload event (hasil testing nyata):
 }
 ```
 
-Format yang dikirim ke API publish Cloud Pusat:
+Format publish ke Cloud Pusat wajib ada routing_key dan wrapper message:
 
 ```json
 {
@@ -173,58 +110,49 @@ Format yang dikirim ke API publish Cloud Pusat:
 }
 ```
 
-Saat testing, event sudah muncul di board dengan pengirim dari tim saya (TIM-09 / TEAM-09).
+Saat testing, board menampilkan pengirim dari tim saya TEAM-09.
 
 ---
 
 ## 5. Sequence Diagram
 
-### 5a. Bootstrap Token Otomatis
+5a. Bootstrap Token Otomatis — Saya tidak isi IAE_SSO_TOKEN manual di .env. Cukup jalankan php artisan iae:sync-token dari terminal Mac, bukan lewat sail. Perintah itu ambil token dari Cloud Pusat pakai KEY-MHS-117, kalau belum aktif fallback ke warga01, lalu tulis otomatis ke .env. Token itu dipakai server buat SOAP dan RabbitMQ, bukan JWT dosen di Postman. Gambar: docs/images/seq-4a-bootstrap-token.png
 
-Diagram ini menjelaskan alur sinkronisasi token sebelum Service C bisa berkomunikasi ke Cloud Pusat.
-
-Pertama, developer menjalankan sync token. Sistem membaca API Key tim dari file `.env`, lalu mengirim request ke Cloud Pusat (`iae-sso.virtualfri.id`) untuk minta token. Kalau API Key M2M sudah aktif, Cloud Pusat langsung mengembalikan token. Kalau belum aktif (401), sistem otomatis coba lagi pakai akun warga01 sebagai cadangan.
-
-Setelah token diterima, sistem menulisnya ke `.env` sebagai `IAE_SSO_TOKEN` beserta waktu expired-nya. Token inilah yang nanti dipakai Service C saat kirim audit SOAP dan publish RabbitMQ — bukan token yang dipakai di Swagger.
-
-![Sequence Diagram — Bootstrap Token Otomatis](docs/images/seq-4a-bootstrap-token.png)
-
-### 5b. Transaksi Kritis POST /nilai
-
-Diagram ini menunjukkan alur lengkap saat dosen mencatat nilai dari awal sampai selesai.
-
-Client (Swagger) login dulu ke Cloud SSO pakai akun warga01 dan mendapat JWT. JWT itu dikirim bersama header `X-IAE-KEY` ke Service C lewat `POST /api/v1/nilai`. Service C memverifikasi JWT lewat JWKS Cloud Pusat, mengecek role user (hanya dosen/admin yang boleh), lalu validasi input nilai. Setelah lolos, data nilai disimpan ke MySQL.
-
-Selanjutnya Service C mengambil token outbound dari `IaeTokenService`, lalu mengirim audit SOAP ke Cloud Pusat dengan `TeamID=TIM-09` dan `ActivityName=NilaiRecorded`. Cloud Pusat membalas dengan `ReceiptNumber` yang disimpan kembali ke database.
-
-Terakhir, Service C publish event `nilai.recorded` ke RabbitMQ lewat Cloud Pusat. Event muncul di board dengan badge hijau. Client menerima response **201** berisi data nilai, `receipt_number`, dan `event_published: true`.
-
-![Sequence Diagram — POST /nilai End-to-End](docs/images/seq-4b-post-nilai.png)
+5b. Transaksi Kritis POST /nilai — Dosen login via Postman dapat JWT, kirim POST /api/v1/nilai dengan X-IAE-KEY dan Bearer JWT. Service C verifikasi SSO, simpan nilai ke MySQL, kirim SOAP audit, publish nilai.recorded, lalu balas 201 dengan receipt_number. Gambar: docs/images/seq-4b-post-nilai.png
 
 ---
 
-## 6. Hasil Testing
+## 6. Cara Testing di Postman
 
-Saya sudah menguji POST /nilai lewat Swagger dan terminal. Beberapa transaksi yang berhasil:
+Sebelum testing jalankan ./vendor/bin/sail up -d lalu php artisan iae:sync-token dari host. Langkah 1, POST ke https://iae-sso.virtualfri.id/api/v1/auth/token dengan body email warga01@ktp.iae.id dan password akun lab, copy field token untuk Bearer. Langkah 2 opsional, POST ke URL yang sama dengan body api_key KEY-MHS-117, kalau dapat token_type m2m dan team TEAM-09 berarti API Key aktif. Langkah 3, GET http://localhost:8000/api/v1/kurikulum dengan header X-IAE-KEY 102022580023 saja. Langkah 4, POST http://localhost:8000/api/v1/nilai dengan header Content-Type application/json, X-IAE-KEY 102022580023, Authorization Bearer JWT, dan body:
 
-| NIM | Mata Kuliah | Receipt Number |
-|---|---|---|
-| 2099000015 | SI302 Jaringan Komputer | IAE-LOG-2026-828A266C |
-| 2099000099 | SI501 Keamanan Sistem Informasi | IAE-LOG-2026-05048A23 |
-| 10202250023 | SI102 Matematika Diskrit | IAE-LOG-2026-54BADCCE |
+```json
+{
+  "nim": "2099000020",
+  "kode_matkul": "SI202",
+  "nama_matkul": "Basis Data",
+  "nilai_huruf": "A",
+  "nilai_angka": 4,
+  "sks": 4,
+  "semester": 2,
+  "tahun_ajaran": "2025/2026"
+}
+```
 
-Semua transaksi di atas menghasilkan receipt number dari SOAP dan event `nilai.recorded` muncul di board RabbitMQ Cloud Pusat.
-
----
-
-## 7. Kesimpulan
-
-**Transaksi penting (SOAP):** `POST /api/v1/nilai` — setiap pencatatan nilai diaudit ke Cloud Pusat dan mendapat `ReceiptNumber`.
-
-**Transaksi yang disebarkan (RabbitMQ):** `POST /api/v1/nilai` — setelah nilai tercatat, event `nilai.recorded` dikirim ke board RabbitMQ Cloud Pusat.
-
-Endpoint GET tidak dipilih karena hanya membaca data tanpa mengubah apapun. Integrasi SSO, SOAP, dan RabbitMQ sudah berjalan dan terverifikasi di https://iae-sso.virtualfri.id.
+Kalau sukses dapat 201 dengan receipt_number dan event_published true, cek board iae-sso.virtualfri.id. Error yang sering saya temui: X-IAE-KEY salah kalau isi KEY-MHS-117, harus NIM 102022580023. JWT expired ulang login. SOAP gagal biasanya token .env expired, jalankan sync-token lagi.
 
 ---
 
-*Analisis Tugas 3 — Service C TIM-09 | NIM 102022580023*
+## 7. Hasil Testing
+
+Saya uji lewat Postman dan beberapa transaksi berhasil: NIM 2099000015 SI302 receipt IAE-LOG-2026-828A266C, NIM 2099000099 SI501 receipt IAE-LOG-2026-05048A23, NIM 10202250023 SI102 receipt IAE-LOG-2026-54BADCCE. Semuanya dapat receipt SOAP dan event nilai.recorded muncul di board.
+
+---
+
+## 8. Kesimpulan
+
+Transaksi penting SOAP dan transaksi RabbitMQ saya pakai endpoint yang sama yaitu POST /api/v1/nilai. GET tidak dipilih karena cuma baca data. Integrasi SSO, SOAP, dan RabbitMQ sudah saya uji dan terverifikasi di Cloud Pusat.
+
+---
+
+Analisis Tugas 3 Service C TIM-09 NIM 102022580023
