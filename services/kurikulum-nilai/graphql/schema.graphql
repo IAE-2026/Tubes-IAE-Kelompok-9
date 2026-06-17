@@ -1,0 +1,50 @@
+"A date string with format `Y-m-d`, e.g. `2011-05-23`."
+scalar Date @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Date")
+
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+type Query {
+    "Mengambil daftar seluruh kurikulum (mata kuliah)."
+    kurikulums: [Kurikulum!]! @all
+
+    "Mengambil detail kurikulum berdasarkan kode mata kuliah."
+    kurikulum(kode_matkul: String! @eq): Kurikulum @find
+
+    "Mengambil daftar seluruh nilai mahasiswa."
+    nilais: [Nilai!]! @all
+
+    "Mengambil daftar nilai berdasarkan NIM mahasiswa."
+    nilaiByNim(nim: String! @eq): [Nilai!]! @all
+}
+
+"Tipe data Kurikulum (mata kuliah)."
+type Kurikulum {
+    id: ID!
+    kode_matkul: String!
+    nama_matkul: String!
+    sks: Int!
+    semester: Int!
+    prodi: String!
+    prasyarat: String
+    deskripsi: String
+    created_at: DateTime!
+    updated_at: DateTime!
+    nilais: [Nilai!]! @hasMany
+}
+
+"Tipe data Nilai mahasiswa."
+type Nilai {
+    id: ID!
+    nim: String!
+    kode_matkul: String!
+    nama_matkul: String!
+    nilai_huruf: String!
+    nilai_angka: Float!
+    sks: Int!
+    semester: Int!
+    tahun_ajaran: String!
+    created_at: DateTime!
+    updated_at: DateTime!
+    kurikulum: Kurikulum @belongsTo
+}
