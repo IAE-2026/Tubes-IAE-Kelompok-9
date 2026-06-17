@@ -130,8 +130,41 @@ Memberikan rekomendasi perbaikan kode kontrol alur di `MahasiswaController@store
 
 ---
 
+### 6. Ekspos Rute Autentikasi di API Gateway (Nginx)
+**Prompt:**
+> Saat ini gateway Nginx hanya meneruskan /api/v1/mahasiswa ke Service A. Tapi aku punya endpoint login dan profile di /api/v1/auth/login dan /api/v1/auth/profile. Karena port Service A ga di-expose ke luar Docker secara langsung, bagaimana cara menambahkannya ke gateway Nginx?
+
+**Respons AI:**
+Membantu menambahkan konfigurasi lokasi `/api/v1/auth` pada `gateway/nginx.conf` agar merutekan request tersebut secara tepat ke container `mahasiswa-service` di port 8000.
+
+**Hasil:** Client luar (Postman/Frontend) sekarang dapat melakukan login SSO secara langsung melalui port 8080 API Gateway.
+
+---
+
+### 7. Penanganan Fallback Agregasi Nilai 404
+**Prompt:**
+> Pada endpoint agregasi /api/v1/mahasiswa/{nim}/matkul, jika mahasiswa itu mahasiswa baru semester 1 dan belum punya nilai di database Service C, maka Service C me-return 404. Ini bikin agregasi matkul di Service A langsung ikutan error 404 dan ga bisa nampilin KRS aktif. Bagaimana cara membuat penanganan fallback agar jika nilai 404, request tetap berhasil tapi data nilai dibuat kosong?
+
+**Respons AI:**
+Mengarahkan modifikasi logika pada `MahasiswaController@matkul` agar mengecek `if ($nilaiResult['status'] === 404)`. Jika ya, buat array data nilai default (`total_sks = 0`, `ips = 0.0`, `nilai = []`) sehingga alur request KRS aktif tetap berjalan lancar.
+
+**Hasil:** Mahasiswa baru sekarang dapat memanggil endpoint agregasi dengan status 200 tanpa terganggu error 404 dari Service C.
+
+---
+
+### 8. Peningkatan Performa dengan Parallel API Composition (Concurrency)
+**Prompt:**
+> Saat ini di MahasiswaController@matkul, pemanggilan API ke Service B (KRS) dan Service C (Nilai) dilakukan secara berurutan (sekuensial). Ini bikin total waktu respon jadi lama (penjumlahan dari kedua request). Apakah bisa dilakukan secara bersamaan (paralel) menggunakan Laravel HTTP Client?
+
+**Respons AI:**
+Menyarankan dan membimbing penggunaan fitur `Http::pool` (HTTP request concurrency) di Laravel. Menulis ulang `ExternalAcademicService` dengan metode `fetchAcademicSummary` yang menginisialisasi request ke Service B dan Service C secara paralel.
+
+**Hasil:** Waktu respon endpoint agregasi berkurang drastis karena total delay hanya mengikuti waktu eksekusi request yang paling lambat (bukan penjumlahan keduanya).
+
+---
+
 ## ✅ Kesimpulan Eksplorasi Bersama AI
 Pemanfaatan AI membantu mempercepat implementasi Tugas 3 melalui:
 1. **Penyusunan Raw SOAP Request:** Mempermudah pembuatan amplop XML (SOAP Envelope) secara manual tanpa ketergantungan pada modul SOAP PHP native yang sering bermasalah di Docker.
-2. **Keamanan & Otorisasi:** Memisahkan token autentikasi M2M (atas nama Tim 9) untuk proses integrasi dan token SSO biasa (atas nama Warga) untuk otorisasi akses individu.
-3. **Pencegahan Error:** Menyediakan mekanisme fallback token dan validasi null-pointer sehingga server lokal tetap berjalan stabil.
+2. **Parallel API Composition:** Menggunakan `Http::pool` untuk menembak beberapa microservice eksternal secara asinkron/bersamaan guna memangkas latency response time.
+3. **Pencegahan Error & Gateway Routing:** Menyediakan mekanisme fallback penanganan error HTTP 404 dari service lain dan merancang integrasi gateway routing hub yang solid untuk autentikasi SSO.
