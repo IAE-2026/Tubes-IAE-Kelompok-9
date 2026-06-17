@@ -47,7 +47,7 @@ class IaeIntegrationTest extends TestCase
 
         Http::assertSent(function ($request) {
             return str_contains($request->url(), '/soap/v1/audit')
-                && str_contains($request->body(), '<iae:TeamID>TIM-09</iae:TeamID>')
+                && str_contains($request->body(), '<iae:TeamID>TEAM-09</iae:TeamID>')
                 && str_contains($request->body(), '<iae:ActivityName>NilaiRecorded</iae:ActivityName>');
         });
     }
