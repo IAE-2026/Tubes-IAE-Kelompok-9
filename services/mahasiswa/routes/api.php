@@ -13,6 +13,7 @@ Route::prefix('v1')->group(function () {
 // Mahasiswa Routes - perlu API Key
 Route::middleware('api.key')->prefix('v1')->group(function () {
     Route::get('/mahasiswa', [MahasiswaController::class, 'index']);
+    Route::get('/mahasiswa/{nim}/matkul', [MahasiswaController::class, 'matkul']);
     Route::get('/mahasiswa/{nim}', [MahasiswaController::class, 'show']);
     Route::post('/mahasiswa', [MahasiswaController::class, 'store']);
 });

@@ -86,12 +86,16 @@ class ExternalAcademicService
         $config = config("iae.services.$service");
         $url = $config['url'].$path;
 
+        $headers = ['Accept' => 'application/json'];
+        if ($service === 'mahasiswa') {
+            $headers['X-API-KEY'] = $config['key'];
+        } else {
+            $headers['X-IAE-KEY'] = $config['key'];
+        }
+
         try {
             $response = Http::timeout(5)
-                ->acceptJson()
-                ->withHeaders([
-                    'X-IAE-KEY' => $config['key'],
-                ])
+                ->withHeaders($headers)
                 ->get($url);
         } catch (ConnectionException) {
             return $this->failed('Service eksternal tidak dapat dihubungi: '.$url, 502);

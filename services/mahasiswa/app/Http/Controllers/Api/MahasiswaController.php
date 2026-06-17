@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Mahasiswa;
 use App\Models\SsoUser;
+use App\Services\ExternalAcademicService;
 use App\Services\SoapAuditService;
 use App\Services\RabbitMQService;
 use Illuminate\Http\Request;
@@ -24,14 +25,11 @@ use OpenApi\Attributes as OA;
 )]
 class MahasiswaController extends Controller
 {
-    protected $soapService;
-    protected $rabbitMQService;
-
-    public function __construct(SoapAuditService $soapService, RabbitMQService $rabbitMQService)
-    {
-        $this->soapService     = $soapService;
-        $this->rabbitMQService = $rabbitMQService;
-    }
+    public function __construct(
+        protected SoapAuditService $soapService,
+        protected RabbitMQService $rabbitMQService,
+        protected ExternalAcademicService $academicService,
+    ) {}
 
     #[OA\Get(
         path: "/api/v1/mahasiswa",
@@ -82,6 +80,72 @@ class MahasiswaController extends Controller
             'success' => true,
             'message' => 'Data mahasiswa berhasil diambil.',
             'data'    => $mahasiswa,
+        ], 200);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/mahasiswa/{nim}/matkul",
+        summary: "Lihat mata kuliah yang diambil mahasiswa",
+        description: "Mengagregasi data KRS aktif dari Service B dan nilai historis dari Service C.",
+        security: [["ApiKeyAuth" => []]],
+        tags: ["Mahasiswa"],
+        parameters: [
+            new OA\Parameter(name: "nim", in: "path", required: true, schema: new OA\Schema(type: "string"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Ringkasan mata kuliah berhasil diambil"),
+            new OA\Response(response: 404, description: "Mahasiswa tidak ditemukan"),
+            new OA\Response(response: 502, description: "Service eksternal gagal dihubungi")
+        ]
+    )]
+    public function matkul(string $nim)
+    {
+        $mahasiswa = Mahasiswa::where('nim', $nim)->first();
+
+        if (! $mahasiswa) {
+            return response()->json([
+                'success' => false,
+                'message' => "Mahasiswa dengan NIM {$nim} tidak ditemukan.",
+                'data'    => null,
+            ], 404);
+        }
+
+        $krsResult = $this->academicService->fetchKrsByNim($nim);
+        if (! $krsResult['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $krsResult['message'],
+                'data'    => null,
+            ], $krsResult['status']);
+        }
+
+        $nilaiResult = $this->academicService->fetchNilaiByNim($nim);
+        if (! $nilaiResult['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $nilaiResult['message'],
+                'data'    => null,
+            ], $nilaiResult['status']);
+        }
+
+        $krsAktif = $krsResult['data'];
+        $nilaiData = $nilaiResult['data'];
+        $matkulBernilai = $nilaiData['nilai'] ?? [];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ringkasan mata kuliah mahasiswa berhasil diambil.',
+            'data'    => [
+                'mahasiswa' => $mahasiswa,
+                'ringkasan' => [
+                    'total_krs_aktif'       => count($krsAktif),
+                    'total_matkul_bernilai' => count($matkulBernilai),
+                    'total_sks_bernilai'    => $nilaiData['total_sks'] ?? null,
+                    'ips'                   => $nilaiData['ips'] ?? null,
+                ],
+                'krs_aktif'        => $krsAktif,
+                'matkul_bernilai'  => $matkulBernilai,
+            ],
         ], 200);
     }
 

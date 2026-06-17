@@ -230,14 +230,13 @@ class NilaiController extends Controller
             return ApiResponse::error('Validasi gagal', 422, $validator->errors()->toArray());
         }
 
-        // Panggil Service A untuk validasi mahasiswa masih aktif
-        // URL Service A (dari teman - sesuaikan dengan URL yang benar)
-        $serviceAUrl = env('SERVICE_A_URL', 'http://localhost:8001');
+        $serviceAUrl = rtrim(env('SERVICE_A_URL', 'http://mahasiswa-service:8000'), '/');
+        $serviceAKey = env('SERVICE_A_KEY', 'KEY-MHS-233');
 
         try {
             $response = Http::withHeaders([
-                'X-IAE-KEY' => '102022580023',
-            ])->get($serviceAUrl . '/api/v1/mahasiswa/' . $request->nim);
+                'X-API-KEY' => $serviceAKey,
+            ])->get($serviceAUrl.'/api/v1/mahasiswa/'.$request->nim);
 
             if ($response->successful()) {
                 $mahasiswaData = $response->json();

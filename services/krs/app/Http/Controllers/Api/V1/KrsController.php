@@ -105,6 +105,7 @@ class KrsController extends Controller
         $kurikulum = $integration['kurikulum'] ?? [];
         $namaMataKuliah = $validated['nama_mata_kuliah']
             ?? Arr::get($kurikulum, 'nama_mata_kuliah')
+            ?? Arr::get($kurikulum, 'nama_matkul')
             ?? Arr::get($kurikulum, 'nama')
             ?? Arr::get($kurikulum, 'nama_mk');
         $sks = $validated['sks'] ?? Arr::get($kurikulum, 'sks');

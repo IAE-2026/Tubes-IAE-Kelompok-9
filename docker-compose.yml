@@ -1,0 +1,204 @@
+name: tubes-iae-kelompok-9
+
+services:
+  # ===========================================================
+  # API GATEWAY (Nginx) — SATU-SATUNYA pintu keluar ke host
+  # ===========================================================
+  gateway:
+    image: nginx:alpine
+    container_name: iae-gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - mahasiswa-service
+      - krs-service
+      - kurikulum-nilai-service
+    networks:
+      - iae-network
+
+  # ===========================================================
+  # SERVICE A — Mahasiswa (Arneta) — expose internal saja
+  # ===========================================================
+  mahasiswa-service:
+    build: ./services/mahasiswa
+    container_name: mahasiswa-service
+    expose:
+      - "8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: mahasiswa-db
+      DB_PORT: "3306"
+      DB_DATABASE: mahasiswa_db
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      API_KEY: KEY-MHS-233
+      KRS_SERVICE_URL: http://krs-service:8000
+      KRS_SERVICE_KEY: "102022400045"
+      KURIKULUM_NILAI_SERVICE_URL: http://kurikulum-nilai-service:8000
+      KURIKULUM_NILAI_SERVICE_KEY: "102022580023"
+      L5_SWAGGER_GENERATE_ALWAYS: "true"
+    command: >
+      bash -c "cp .env.example .env;
+      sed -i 's/^DB_HOST=.*/DB_HOST=mahasiswa-db/' .env;
+      sed -i 's/^DB_DATABASE=.*/DB_DATABASE=mahasiswa_db/' .env;
+      sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=secret/' .env;
+      sed -i 's/^API_KEY=.*/API_KEY=KEY-MHS-233/' .env;
+      sed -i 's|^KRS_SERVICE_URL=.*|KRS_SERVICE_URL=http://krs-service:8000|' .env;
+      sed -i 's/^KRS_SERVICE_KEY=.*/KRS_SERVICE_KEY=102022400045/' .env;
+      sed -i 's|^KURIKULUM_NILAI_SERVICE_URL=.*|KURIKULUM_NILAI_SERVICE_URL=http://kurikulum-nilai-service:8000|' .env;
+      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=102022580023/' .env;
+      php artisan key:generate --force;
+      php artisan config:clear;
+      php artisan migrate:fresh --force --seed;
+      php-fpm -D && nginx -g 'daemon off;'"
+    depends_on:
+      mahasiswa-db:
+        condition: service_healthy
+    networks:
+      - iae-network
+
+  mahasiswa-db:
+    image: mysql:8.0
+    container_name: mahasiswa-db
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: mahasiswa_db
+    volumes:
+      - mahasiswa-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - iae-network
+
+  # ===========================================================
+  # SERVICE B — KRS (Jafar) — expose internal saja
+  # ===========================================================
+  krs-service:
+    build: ./services/krs
+    container_name: krs-service
+    expose:
+      - "8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: krs-db
+      DB_PORT: "3306"
+      DB_DATABASE: krs_service
+      DB_USERNAME: krs_user
+      DB_PASSWORD: krs_password
+      IAE_API_KEY: "102022400045"
+      IAE_TEAM_ID: TEAM-09
+      # Fase 4: validasi lintas service aktif
+      EXTERNAL_VALIDATION_ENABLED: "true"
+      MAHASISWA_SERVICE_URL: http://mahasiswa-service:8000
+      MAHASISWA_SERVICE_KEY: KEY-MHS-233
+      KURIKULUM_NILAI_SERVICE_URL: http://kurikulum-nilai-service:8000
+      KURIKULUM_NILAI_SERVICE_KEY: "102022580023"
+    command: >
+      sh -c "cp .env.example .env;
+      sed -i 's/^EXTERNAL_VALIDATION_ENABLED=.*/EXTERNAL_VALIDATION_ENABLED=true/' .env;
+      sed -i 's/^MAHASISWA_SERVICE_KEY=.*/MAHASISWA_SERVICE_KEY=KEY-MHS-233/' .env;
+      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=102022580023/' .env;
+      php artisan key:generate --force;
+      php artisan config:clear;
+      php artisan migrate:fresh --force --seed;
+      php artisan serve --host=0.0.0.0 --port=8000"
+    depends_on:
+      krs-db:
+        condition: service_healthy
+    networks:
+      - iae-network
+
+  krs-db:
+    image: mysql:8.0
+    container_name: krs-db
+    environment:
+      MYSQL_DATABASE: krs_service
+      MYSQL_USER: krs_user
+      MYSQL_PASSWORD: krs_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - krs-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - iae-network
+
+  # ===========================================================
+  # SERVICE C — Kurikulum & Nilai (Andi) — expose internal saja
+  # ===========================================================
+  kurikulum-nilai-service:
+    build: ./services/kurikulum-nilai
+    container_name: kurikulum-nilai-service
+    expose:
+      - "8000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: kurikulum-db
+      DB_PORT: "3306"
+      DB_DATABASE: kurikulum_db
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      SERVICE_A_URL: http://mahasiswa-service:8000
+      SERVICE_A_KEY: KEY-MHS-233
+      IAE_API_KEY: KEY-MHS-117
+      IAE_TEAM_ID: TIM-09
+      L5_SWAGGER_GENERATE_ALWAYS: "true"
+    command: >
+      bash -c "cp .env.example .env;
+      sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env;
+      sed -i 's/^# DB_HOST=.*/DB_HOST=kurikulum-db/' .env;
+      sed -i 's/^# DB_PORT=.*/DB_PORT=3306/' .env;
+      sed -i 's/^# DB_DATABASE=.*/DB_DATABASE=kurikulum_db/' .env;
+      sed -i 's/^# DB_USERNAME=.*/DB_USERNAME=root/' .env;
+      sed -i 's/^# DB_PASSWORD=.*/DB_PASSWORD=secret/' .env;
+      grep -q '^SERVICE_A_URL=' .env || echo 'SERVICE_A_URL=http://mahasiswa-service:8000' >> .env;
+      grep -q '^SERVICE_A_KEY=' .env || echo 'SERVICE_A_KEY=KEY-MHS-233' >> .env;
+      php artisan key:generate --force;
+      php artisan config:clear;
+      php artisan migrate:fresh --force --seed;
+      php artisan serve --host=0.0.0.0 --port=8000"
+    depends_on:
+      kurikulum-db:
+        condition: service_healthy
+    networks:
+      - iae-network
+
+  kurikulum-db:
+    image: mysql:8.0
+    container_name: kurikulum-db
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: kurikulum_db
+    volumes:
+      - kurikulum-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psecret"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - iae-network
+
+volumes:
+  mahasiswa-db-data:
+  krs-db-data:
+  kurikulum-db-data:
+
+networks:
+  iae-network:
+    name: iae-network
+    driver: bridge
