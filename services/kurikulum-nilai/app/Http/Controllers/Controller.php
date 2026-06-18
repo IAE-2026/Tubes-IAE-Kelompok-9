@@ -22,7 +22,7 @@ use OpenApi\Attributes as OA;
     type: "apiKey",
     in: "header",
     name: "X-IAE-KEY",
-    description: "Masukkan NIM sebagai API Key (102022580023)"
+    description: "Masukkan API Key MHS (KEY-MHS-117)"
 )]
 #[OA\SecurityScheme(
     securityScheme: "bearerAuth",
