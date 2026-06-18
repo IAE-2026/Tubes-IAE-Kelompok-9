@@ -5,7 +5,7 @@ services:
   # API GATEWAY (Nginx) — SATU-SATUNYA pintu keluar ke host
   # ===========================================================
   gateway:
-    image: nginx:alpine
+    image: nginx:latest
     container_name: iae-gateway
     ports:
       - "8080:80"
