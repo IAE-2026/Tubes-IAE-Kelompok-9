@@ -84,6 +84,4 @@ Berikut adalah daftar commit yang merepresentasikan kontribusi coding nyata saya
 13. `fdcb04d` - **Initial KRS service implementation**  
     *Pembuatan awal database schema, migration, models, controllers, OpenAPI, dan routes untuk KRS.*
 
----
-Disetujui oleh Asisten Praktikum,
-*(................................................)*
+
