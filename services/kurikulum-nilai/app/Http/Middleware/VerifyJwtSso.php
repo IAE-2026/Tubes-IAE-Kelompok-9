@@ -57,15 +57,22 @@ class VerifyJwtSso
         $roleName = $this->resolveRoleName($email);
         $role = Role::query()->firstOrCreate(['name' => $roleName]);
 
-        $user = User::query()->updateOrCreate(
-            ['email' => $email],
-            [
+        $user = User::query()->where('email', $email)->first();
+        if ($user) {
+            $user->update([
+                'name' => $profile['name'] ?? $user->name,
+                'role_id' => $role->id,
+                'sso_sub' => $email,
+            ]);
+        } else {
+            $user = User::query()->create([
+                'email' => $email,
                 'name' => $profile['name'] ?? $email,
                 'password' => bcrypt(str()->random(32)),
                 'role_id' => $role->id,
                 'sso_sub' => $email,
-            ]
-        );
+            ]);
+        }
 
         $allowedRoles = config('services.iae.allowed_nilai_roles', ['dosen', 'admin']);
 

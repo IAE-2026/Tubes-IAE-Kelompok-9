@@ -161,7 +161,7 @@ services:
       SERVICE_A_URL: http://mahasiswa-service:8000
       SERVICE_A_KEY: KEY-MHS-233
       IAE_API_KEY: KEY-MHS-117
-      IAE_TEAM_ID: TIM-09
+      IAE_TEAM_ID: TEAM-09
       L5_SWAGGER_GENERATE_ALWAYS: "true"
     command: >
       bash -c "cp .env.example .env;

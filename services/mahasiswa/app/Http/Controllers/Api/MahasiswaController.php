@@ -110,7 +110,10 @@ class MahasiswaController extends Controller
             ], 404);
         }
 
-        $krsResult = $this->academicService->fetchKrsByNim($nim);
+        $summary = $this->academicService->fetchAcademicSummary($nim);
+        $krsResult = $summary['krs'];
+        $nilaiResult = $summary['nilai'];
+
         if (! $krsResult['ok']) {
             return response()->json([
                 'success' => false,
@@ -119,17 +122,26 @@ class MahasiswaController extends Controller
             ], $krsResult['status']);
         }
 
-        $nilaiResult = $this->academicService->fetchNilaiByNim($nim);
         if (! $nilaiResult['ok']) {
-            return response()->json([
-                'success' => false,
-                'message' => $nilaiResult['message'],
-                'data'    => null,
-            ], $nilaiResult['status']);
+            if ($nilaiResult['status'] === 404) {
+                // Fallback jika mahasiswa belum memiliki nilai sama sekali (misal semester 1)
+                $nilaiData = [
+                    'total_sks' => 0,
+                    'ips'       => 0.00,
+                    'nilai'     => [],
+                ];
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $nilaiResult['message'],
+                    'data'    => null,
+                ], $nilaiResult['status']);
+            }
+        } else {
+            $nilaiData = $nilaiResult['data'];
         }
 
         $krsAktif = $krsResult['data'];
-        $nilaiData = $nilaiResult['data'];
         $matkulBernilai = $nilaiData['nilai'] ?? [];
 
         return response()->json([
