@@ -26,6 +26,8 @@ services:
     container_name: mahasiswa-service
     expose:
       - "8000"
+    ports:
+      - "8001:8000"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -85,6 +87,8 @@ services:
     container_name: krs-service
     expose:
       - "8000"
+    ports:
+      - "8002:8000"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -143,6 +147,8 @@ services:
     container_name: kurikulum-nilai-service
     expose:
       - "8000"
+    ports:
+      - "8003:8000"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
