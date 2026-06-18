@@ -1,4 +1,4 @@
-# 🤖 AI Prompting Log - Tugas Besar IAE
+# AI Prompting Log - Tugas Besar IAE
 **Service A - Data Mahasiswa Service**  
 **BBK2HAB3 - Integrasi Aplikasi Enterprise**  
 **Nama:** Arneta Alifiana  
@@ -7,12 +7,12 @@
 
 ---
 
-## 📌 Pendahuluan & Tujuan Penggunaan AI
+## Pendahuluan & Tujuan Penggunaan AI
 Dokumen ini merekam secara lengkap riwayat interaksi dan diskusi teknis (prompting) antara pengembang (Arneta) dengan AI selama proses pengerjaan Tugas Besar Integrasi Aplikasi Enterprise. Seluruh rancangan arsitektur, implementasi fitur, hingga langkah-langkah optimalisasi performa dikerjakan dengan kolaborasi intensif, di mana pengembang aktif memberikan masukan arsitektur, memandu skema kode, serta menyelesaikan masalah integrasi bersama AI.
 
 ---
 
-## 📝 Log Diskusi Teknis & Prompting
+## Log Diskusi Teknis & Prompting
 
 ### 1. Inisialisasi Project & Skema Database
 *   **Prompt (Arneta):**
@@ -111,7 +111,3 @@ Dokumen ini merekam secara lengkap riwayat interaksi dan diskusi teknis (prompti
     > Ide optimasi performa yang luar biasa! Kita bisa merombak `ExternalAcademicService` untuk memanggil kedua service secara bersamaan menggunakan pool HTTP asinkron. Dengan `Http::pool()`, request ke KRS dan Nilai berjalan secara bersamaan dan latency backend akan berkurang secara signifikan.
 *   **Hasil:** Kecepatan respon endpoint agregasi matkul meningkat drastis.
 
----
-
-## ✅ Kesimpulan
-Penggunaan AI dalam pengerjaan Tugas Besar ini dilakukan secara kolaboratif. Pengembang memandu desain sistem, mengidentifikasi kejanggalan integrasi, dan mengusulkan solusi ketahanan sistem, sementara AI membantu menulis kode boilerplate yang bersih, cepat, dan sesuai dengan standar Laravel modern.
