@@ -41,7 +41,7 @@ services:
       KRS_SERVICE_URL: http://krs-service:8000
       KRS_SERVICE_KEY: "KEY-MHS-109"
       KURIKULUM_NILAI_SERVICE_URL: http://kurikulum-nilai-service:8000
-      KURIKULUM_NILAI_SERVICE_KEY: "102022580023"
+      KURIKULUM_NILAI_SERVICE_KEY: "KEY-MHS-117"
       L5_SWAGGER_GENERATE_ALWAYS: "true"
     command: >
       bash -c "cp .env.example .env;
@@ -52,7 +52,7 @@ services:
       sed -i 's|^KRS_SERVICE_URL=.*|KRS_SERVICE_URL=http://krs-service:8000|' .env;
       sed -i 's/^KRS_SERVICE_KEY=.*/KRS_SERVICE_KEY=KEY-MHS-109/' .env;
       sed -i 's|^KURIKULUM_NILAI_SERVICE_URL=.*|KURIKULUM_NILAI_SERVICE_URL=http://kurikulum-nilai-service:8000|' .env;
-      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=102022580023/' .env;
+      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=KEY-MHS-117/' .env;
       php artisan key:generate --force;
       php artisan config:clear;
       php artisan migrate:fresh --force --seed;
@@ -105,12 +105,12 @@ services:
       MAHASISWA_SERVICE_URL: http://mahasiswa-service:8000
       MAHASISWA_SERVICE_KEY: KEY-MHS-233
       KURIKULUM_NILAI_SERVICE_URL: http://kurikulum-nilai-service:8000
-      KURIKULUM_NILAI_SERVICE_KEY: "102022580023"
+      KURIKULUM_NILAI_SERVICE_KEY: "KEY-MHS-117"
     command: >
       sh -c "cp .env.example .env;
       sed -i 's/^EXTERNAL_VALIDATION_ENABLED=.*/EXTERNAL_VALIDATION_ENABLED=true/' .env;
       sed -i 's/^MAHASISWA_SERVICE_KEY=.*/MAHASISWA_SERVICE_KEY=KEY-MHS-233/' .env;
-      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=102022580023/' .env;
+      sed -i 's/^KURIKULUM_NILAI_SERVICE_KEY=.*/KURIKULUM_NILAI_SERVICE_KEY=KEY-MHS-117/' .env;
       php artisan key:generate --force;
       php artisan config:clear;
       php artisan migrate:fresh --force --seed;

@@ -14,7 +14,7 @@ return [
         ],
         'kurikulum_nilai' => [
             'url' => rtrim(env('KURIKULUM_NILAI_SERVICE_URL', 'http://kurikulum-nilai-service:8000'), '/'),
-            'key' => env('KURIKULUM_NILAI_SERVICE_KEY', env('IAE_API_KEY', 'KEY-MHS-109')),
+            'key' => env('KURIKULUM_NILAI_SERVICE_KEY', 'KEY-MHS-117'),
         ],
     ],
 
