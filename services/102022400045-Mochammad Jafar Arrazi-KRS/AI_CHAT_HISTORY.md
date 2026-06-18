@@ -1,246 +1,14 @@
-# Log Prompt AI — IAE Assignment 2
+# Log Prompt AI — Tugas Besar & Tugas 3 IAE
 
 **Nama:** Mochammad Jafar Arrazi
 **NIM:** 102022400045
 **Repository:** `102022400045_MochammadJafarArrazi-KRS-Service`
-**Service:** KRS-Service
-**Framework:** Laravel
-**Domain:** Education System
+**Service:** KRS-Service (Service B)
+**Kelompok:** Kelompok 9
 
 ---
 
-## 1. Analisis Requirement Assignment
-
-### Prompt
-
-> Saya dapet assignment IAE tentang service-based architecture.
-Requirementnya:
->
-> * Setiap mahasiswa membuat service sendiri
-> * Service harus berjalan mandiri dengan Docker
-> * Komunikasi antarservice menggunakan HTTP endpoint
-> * Tidak boleh akses database service lain langsung
-> * Semua endpoint menggunakan `/api/v1`
-> * Menggunakan JSON dan header `X-IAE-KEY`
-> * Wajib menyediakan Swagger/OpenAPI, GraphQL, Docker, README, testing, migration, dan dokumentasi
-
-### Hasil
-
-* Didapatkan pemahaman arsitektur service-based.
-* Diputuskan menggunakan Laravel + MySQL + Docker.
-* Ditentukan kebutuhan REST API, GraphQL, OpenAPI, dan integrasi antarservice.
-
----
-
-## 2. Penentuan Domain dan Business Process
-
-### Prompt
-
-Domain project saya Education System.
-Flow bisnisnya dosen melakukan persetujuan KRS semester baru.
-Service yang saya pegang bagian pencatatan KRS mahasiswa.
-Tolong bantu buat alur bisnis dan integrasi antarservice.
-### Hasil
-
-Dirancang alur:
-
-1. Mahasiswa mengisi KRS.
-2. KRS Service memvalidasi mahasiswa aktif ke Service Mahasiswa.
-3. KRS Service memvalidasi IPS semester lalu ke Service Nilai.
-4. KRS Service memvalidasi mata kuliah ke Service Kurikulum.
-5. Data KRS disimpan dengan status persetujuan `pending`.
-
----
-
-## 3. Perancangan Struktur Service
-
-### Prompt
-
-> Tolong bantu buat rancangan KRS-Service Laravel lengkap dengan endpoint REST, GraphQL, Docker, dan migration database.
-
-### Hasil
-
-Diputuskan:
-
-* Repository: `102022400045_MochammadJafarArrazi-KRS-Service`
-* Port: `8002`
-* Docker service name: `krs-service`
-* Network: `iae-network`
-* Database: MySQL
-
-Endpoint utama:
-
-* `GET /api/v1/krs`
-* `GET /api/v1/krs/{id}`
-* `GET /api/v1/krs/semester/{tahunAjaran}/{semester}`
-* `POST /api/v1/krs`
-
----
-
-## 4. Pembuatan Standard Response Contract
-
-### Prompt
-
-> Bantu buat format response API Laravel yang standar buat assignment ini.
-
-### Hasil
-
-Response distandarkan menjadi:
-
-```json
-{
-  "success": true,
-  "message": "Data berhasil diambil",
-  "data": [],
-  "errors": null
-}
-```
-
-Error response:
-
-```json
-{
-  "success": false,
-  "message": "Validasi gagal",
-  "data": null,
-  "errors": {
-    "nim": [
-      "NIM wajib diisi"
-    ]
-  }
-}
-```
-
----
-
-## 5. Integrasi Antarservice
-
-### Prompt
-
->Gimana cara implementasi komunikasi antarservice di Laravel pakai HTTP Client buat validasi mahasiswa, IPS, dan mata kuliah?
-
-### Hasil
-
-Digunakan:
-
-* `Illuminate\Support\Facades\Http`
-* Header `X-IAE-KEY`
-* Validasi dilakukan melalui HTTP request ke service lain.
-
-Contoh:
-
-```php
-$response = Http::withHeaders([
-    'X-IAE-KEY' => env('IAE_API_KEY')
-])->get($url);
-```
-
----
-
-## 6. Pembuatan Docker dan Docker Compose
-
-### Prompt
-
-> Tolong buatkan Dockerfile dan docker-compose untuk Laravel + MySQL.
-
-### Hasil
-
-Dibuat:
-
-* `Dockerfile`
-* `docker-compose.yml`
-* Shared network `iae-network`
-* Mapping port `8002:8000`
-
----
-
-## 7. Pembuatan OpenAPI dan Swagger
-
-### Prompt
-
-> Bantu buat dokumentasi Swagger/OpenAPI sederhana untuk endpoint KRS.
-
-### Hasil
-
-Diputuskan:
-
-* File OpenAPI statis di:
-  `public/docs/openapi.json`
-* Swagger UI diakses melalui:
-  `/api/documentation`
-
----
-
-## 8. Implementasi GraphQL
-
-### Prompt
-
-> Bantu buat GraphQL sederhana untuk query daftar KRS.
-
-### Hasil
-
-Endpoint:
-
-* `POST /graphql`
-* `GET /graphiql`
-
-Contoh query:
-
-```graphql
-query {
-  krsList {
-    id
-    nim
-    kode_mata_kuliah
-    nama_mata_kuliah
-    status_persetujuan
-  }
-}
-```
-
----
-
-## 9. Pembuatan README Repository
-
-### Prompt
-
-> Tolong bantu buat README project Laravel service-based lengkap buat assignment IAE.
-
-### Hasil
-
-README berisi:
-
-* Deskripsi service
-* Cara setup
-* Cara menjalankan Docker
-* Endpoint REST
-* Endpoint GraphQL
-* Dokumentasi Swagger
-* Struktur project
-* Cara testing
-
----
-
-## 10. Debugging dan Error Handling
-
-### Prompt
-
-> Saya mendapatkan error 404 pada endpoint Laravel API.
-> Tolong bantu analisis kemungkinan penyebabnya.
-
-### Hasil
-
-Dilakukan pengecekan:
-
-* Route API
-* Prefix `/api/v1`
-* Konfigurasi container Docker
-* Port mapping
-* Route cache Laravel
-
----
-
-## 11. Kepatuhan Infrastruktur Pusat (Tugas 3 — SOAP & RabbitMQ)
+## 1. Perancangan & Integrasi Kepatuhan Infrastruktur Pusat (SOAP & RabbitMQ)
 
 ### Prompt
 
@@ -259,7 +27,7 @@ AI merancang class [CentralSsoClient.php](file:///c:/Users/User/Documents/smt%20
 
 ---
 
-## 12. Integrasi Sistem & API Gateway (Tugas Besar)
+## 2. Integrasi Sistem ke Belakang API Gateway (Nginx)
 
 ### Prompt
 
@@ -285,7 +53,7 @@ location /api/v1/krs {
 
 ---
 
-## 13. Penyelarasan API Key Lintas Service
+## 3. Penyelarasan API Key Lintas Service
 
 ### Prompt
 
@@ -303,7 +71,7 @@ AI memandu perubahan pada file-file berikut:
 
 ---
 
-## 14. Debugging & Pemecahan Masalah Container (Seeder & Faker)
+## 4. Debugging & Pemecahan Masalah Container (Seeder & Faker)
 
 ### Prompt
 
@@ -330,12 +98,9 @@ Perbaikan diterapkan langsung pada [UserFactory.php](file:///c:/Users/User/Docum
 
 ## Kesimpulan
 
-AI digunakan sebagai:
+AI digunakan secara intensif dalam perancangan dan troubleshooting Tugas Besar ini sebagai:
+1. **Asisten Integrasi Middleware & Gateway:** Mengonstruksi request SOAP manual dan routing API Gateway Nginx.
+2. **Asisten Debugging Environment:** Memecahkan masalah server routing 404 dan masalah dependency packaging pada Docker container (`--no-dev`).
+3. **Asisten Standardisasi Kode:** Menyelaraskan API Key komunikasi antar-layanan kelompok.
 
-* Assistant analisis requirement
-* Assistant desain arsitektur service
-* Assistant konsep implementasi Laravel
-* Assistant dokumentasi project
-* Assistant debugging dan troubleshooting (terutama pada Nginx proxy header & PHP unit seeder crash)
-
-Semua hasil implementasi tetap dianalisis, disesuaikan, dan diuji kembali secara mandiri sebelum digunakan dalam project assignment kelompok.
+Seluruh kode hasil diskusi telah ditinjau, diuji di lingkungan lokal kelompok, dan berfungsi dengan baik.
