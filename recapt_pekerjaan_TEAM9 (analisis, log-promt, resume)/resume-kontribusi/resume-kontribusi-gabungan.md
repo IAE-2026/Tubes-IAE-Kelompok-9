@@ -49,9 +49,11 @@ Detail: [`resume-kontribusi-masing-masing/jafar/RESUME_KONTRIBUSI.md`](resume-ko
 
 ### Andi, Service C (Nilai & Kurikulum)
 
-Andi ngurus kurikulum sama nilai. Bisa liat daftar matkul, liat nilai per NIM (plus IPS), dan dosen bisa input nilai baru. Ada REST, GraphQL, sama Swagger. Pas input nilai, Service C cek dulu ke Service A apakah mahasiswanya beneran ada dan aktif.
+Andi ngurus kurikulum sama nilai. Bisa liat daftar matkul, liat nilai per NIM (plus IPS), dan dosen bisa input nilai baru. Ada REST, GraphQL, sama Swagger. Pas input nilai, Service C cek dulu ke Service A apakah mahasiswanya beneran ada dan aktif. POST nilai wajib dua header: `X-IAE-KEY: KEY-MHS-117` dan Bearer JWT dosen (warga01). Token M2M untuk SOAP/RabbitMQ di-sync lewat `php artisan iae:sync-token`, terpisah dari JWT Postman.
 
-Pas Tugas 3, transaksi pentingnya POST `/api/v1/nilai` dengan audit SOAP NilaiRecorded plus event `nilai.recorded`. Token buat SOAP/RabbitMQ di-sync otomatis lewat `php artisan iae:sync-token`. Resume lengkap Andi ditulis sendiri, bukan hasil AI generate penuh.
+Pas Tugas Besar, Andi juga urus harmonisasi gateway, dokumentasi routing-map, folder recapt penilaian tim, dan endpoint agregasi matkul di Service A supaya nilai bisa dilihat end-to-end lewat `GET /mahasiswa/{nim}/matkul`.
+
+Pas Tugas 3, transaksi pentingnya POST `/api/v1/nilai` dengan audit SOAP NilaiRecorded plus event `nilai.recorded`. Resume lengkap Andi ditulis sendiri, bukan hasil AI generate penuh.
 
 Detail: [`resume-kontribusi-masing-masing/andi/RESUME_ANDI.md`](resume-kontribusi-masing-masing/andi/RESUME_ANDI.md)
 
