@@ -22,7 +22,7 @@ services:
   # SERVICE A — Mahasiswa (Arneta) — expose internal saja
   # ===========================================================
   mahasiswa-service:
-    build: ./services/mahasiswa
+    build: ./services/102022400136-Arneta Alifiana-Data Mahasiswa
     container_name: mahasiswa-service
     expose:
       - "8000"
@@ -88,7 +88,7 @@ services:
   # SERVICE B — KRS (Jafar) — expose internal saja
   # ===========================================================
   krs-service:
-    build: ./services/krs
+    build: ./services/102022400045-Mochammad Jafar Arrazi-KRS
     container_name: krs-service
     expose:
       - "8000"
@@ -148,10 +148,10 @@ services:
       - iae-network
 
   # ===========================================================
-  # SERVICE C — Kurikulum & Nilai (Andi) — expose internal saja
+  # SERVICE C — Nilai & Kurikulum (Andi) — expose internal saja
   # ===========================================================
   kurikulum-nilai-service:
-    build: ./services/kurikulum-nilai
+    build: ./services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum
     container_name: kurikulum-nilai-service
     expose:
       - "8000"
