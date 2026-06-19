@@ -13,7 +13,7 @@ class KrsApiTest extends TestCase
 
     private function headers(): array
     {
-        return ['X-IAE-KEY' => '102022400045'];
+        return ['X-IAE-KEY' => config('iae.api_key')];
     }
 
     public function test_get_krs_returns_standard_success_response(): void
