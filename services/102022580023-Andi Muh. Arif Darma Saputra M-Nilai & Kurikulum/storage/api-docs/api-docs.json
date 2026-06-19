@@ -1,0 +1,575 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Service C — Nilai & Kurikulum API",
+        "description": "API untuk validasi prasyarat dan kurikulum mahasiswa. Service ini menyediakan akses data nilai mahasiswa, IPS semester, dan detail kurikulum.",
+        "contact": {
+            "name": "Andi Muh. Arif Darma Saputra M",
+            "email": "102022580023@student.telkomuniversity.ac.id"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/api/v1/kurikulum": {
+            "get": {
+                "tags": [
+                    "Kurikulum"
+                ],
+                "summary": "Lihat daftar semua kurikulum",
+                "description": "Mengambil daftar seluruh mata kuliah dalam kurikulum. Endpoint ini berfungsi sebagai Collection.",
+                "operationId": "getKurikulumList",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar kurikulum",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data kurikulum berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "kode_matkul": {
+                                                        "type": "string",
+                                                        "example": "SI101"
+                                                    },
+                                                    "nama_matkul": {
+                                                        "type": "string",
+                                                        "example": "Algoritma dan Pemrograman"
+                                                    },
+                                                    "sks": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "semester": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "prodi": {
+                                                        "type": "string",
+                                                        "example": "S1 Sistem Informasi"
+                                                    },
+                                                    "prasyarat": {
+                                                        "type": "string",
+                                                        "example": null,
+                                                        "nullable": true
+                                                    },
+                                                    "deskripsi": {
+                                                        "type": "string",
+                                                        "example": "Mata kuliah dasar pemrograman",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "service_name": {
+                                                    "type": "string",
+                                                    "example": "Prasyarat-Kurikulum-Service"
+                                                },
+                                                "api_version": {
+                                                    "type": "string",
+                                                    "example": "v1"
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - API Key tidak valid"
+                    }
+                },
+                "security": [
+                    {
+                        "X-IAE-KEY": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/kurikulum/{kode}": {
+            "get": {
+                "tags": [
+                    "Kurikulum"
+                ],
+                "summary": "Lihat detail kurikulum berdasarkan kode matkul",
+                "description": "Mengambil detail mata kuliah spesifik berdasarkan kode matkul. Dipanggil oleh Service B untuk validasi matkul.",
+                "operationId": "getKurikulumByKode",
+                "parameters": [
+                    {
+                        "name": "kode",
+                        "in": "path",
+                        "description": "Kode mata kuliah",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "SI101"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil detail kurikulum",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail kurikulum berhasil diambil"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "kode_matkul": {
+                                                    "type": "string",
+                                                    "example": "SI101"
+                                                },
+                                                "nama_matkul": {
+                                                    "type": "string",
+                                                    "example": "Algoritma dan Pemrograman"
+                                                },
+                                                "sks": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "semester": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "prodi": {
+                                                    "type": "string",
+                                                    "example": "S1 Sistem Informasi"
+                                                },
+                                                "prasyarat": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "deskripsi": {
+                                                    "type": "string",
+                                                    "example": "Mata kuliah dasar pemrograman",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kurikulum tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized - API Key tidak valid"
+                    }
+                },
+                "security": [
+                    {
+                        "X-IAE-KEY": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/nilai": {
+            "get": {
+                "tags": [
+                    "Nilai"
+                ],
+                "summary": "Lihat daftar semua nilai",
+                "description": "Mengambil daftar seluruh nilai mahasiswa. Endpoint ini berfungsi sebagai Collection.",
+                "operationId": "getNilaiList",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar nilai",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data nilai berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "nim": {
+                                                        "type": "string",
+                                                        "example": "102022400136"
+                                                    },
+                                                    "kode_matkul": {
+                                                        "type": "string",
+                                                        "example": "SI101"
+                                                    },
+                                                    "nama_matkul": {
+                                                        "type": "string",
+                                                        "example": "Algoritma dan Pemrograman"
+                                                    },
+                                                    "nilai_huruf": {
+                                                        "type": "string",
+                                                        "example": "A"
+                                                    },
+                                                    "nilai_angka": {
+                                                        "type": "number",
+                                                        "example": 4
+                                                    },
+                                                    "sks": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "semester": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "tahun_ajaran": {
+                                                        "type": "string",
+                                                        "example": "2024/2025"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "service_name": {
+                                                    "type": "string",
+                                                    "example": "Prasyarat-Kurikulum-Service"
+                                                },
+                                                "api_version": {
+                                                    "type": "string",
+                                                    "example": "v1"
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - API Key tidak valid"
+                    }
+                },
+                "security": [
+                    {
+                        "X-IAE-KEY": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Nilai"
+                ],
+                "summary": "Catat nilai mahasiswa setelah semester selesai",
+                "description": "Menambahkan data nilai mahasiswa baru. Memerlukan Bearer JWT IAE SSO (role dosen/admin). Setelah tersimpan, transaksi diaudit via SOAP legacy dan disebarkan ke RabbitMQ sebagai event nilai.recorded.",
+                "operationId": "storeNilai",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nim",
+                                    "kode_matkul",
+                                    "nama_matkul",
+                                    "nilai_huruf",
+                                    "nilai_angka",
+                                    "sks",
+                                    "semester",
+                                    "tahun_ajaran"
+                                ],
+                                "properties": {
+                                    "nim": {
+                                        "type": "string",
+                                        "example": "102022400136"
+                                    },
+                                    "kode_matkul": {
+                                        "type": "string",
+                                        "example": "SI101"
+                                    },
+                                    "nama_matkul": {
+                                        "type": "string",
+                                        "example": "Algoritma dan Pemrograman"
+                                    },
+                                    "nilai_huruf": {
+                                        "description": "Nilai huruf: A, AB, B, BC, C, D, E",
+                                        "type": "string",
+                                        "example": "A"
+                                    },
+                                    "nilai_angka": {
+                                        "description": "Nilai angka: 4.0, 3.5, 3.0, 2.5, 2.0, 1.0, 0.0",
+                                        "type": "number",
+                                        "example": 4
+                                    },
+                                    "sks": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "semester": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "tahun_ajaran": {
+                                        "type": "string",
+                                        "example": "2024/2025"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Nilai berhasil dicatat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Nilai mahasiswa berhasil dicatat"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "nim": {
+                                                    "type": "string",
+                                                    "example": "102022580023"
+                                                },
+                                                "receipt_number": {
+                                                    "type": "string",
+                                                    "example": "IAE-LOG-2026-8891A7BC"
+                                                },
+                                                "event_published": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validasi gagal"
+                    },
+                    "400": {
+                        "description": "Mahasiswa tidak aktif atau tidak ditemukan di Service A"
+                    },
+                    "401": {
+                        "description": "Unauthorized - API Key atau JWT tidak valid"
+                    },
+                    "403": {
+                        "description": "Forbidden - Role tidak diizinkan"
+                    },
+                    "502": {
+                        "description": "Integrasi SOAP/RabbitMQ gagal"
+                    }
+                },
+                "security": [
+                    {
+                        "X-IAE-KEY": []
+                    },
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/nilai/{nim}": {
+            "get": {
+                "tags": [
+                    "Nilai"
+                ],
+                "summary": "Lihat nilai dan IPS semester lalu berdasarkan NIM",
+                "description": "Mengambil daftar nilai dan menghitung IPS (Indeks Prestasi Semester) mahasiswa. Dipanggil oleh Service B untuk cek syarat ambil matkul.",
+                "operationId": "getNilaiByNim",
+                "parameters": [
+                    {
+                        "name": "nim",
+                        "in": "path",
+                        "description": "NIM Mahasiswa",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "102022400136"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil nilai mahasiswa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data nilai mahasiswa berhasil diambil"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "nim": {
+                                                    "type": "string",
+                                                    "example": "102022400136"
+                                                },
+                                                "ips": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 3.75
+                                                },
+                                                "total_sks": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "semester_terakhir": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "nilai": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "kode_matkul": {
+                                                                "type": "string",
+                                                                "example": "SI101"
+                                                            },
+                                                            "nama_matkul": {
+                                                                "type": "string",
+                                                                "example": "Algoritma dan Pemrograman"
+                                                            },
+                                                            "nilai_huruf": {
+                                                                "type": "string",
+                                                                "example": "A"
+                                                            },
+                                                            "nilai_angka": {
+                                                                "type": "number",
+                                                                "example": 4
+                                                            },
+                                                            "sks": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "semester": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Data nilai mahasiswa tidak ditemukan"
+                    },
+                    "401": {
+                        "description": "Unauthorized - API Key tidak valid"
+                    }
+                },
+                "security": [
+                    {
+                        "X-IAE-KEY": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "X-IAE-KEY": {
+                "type": "apiKey",
+                "description": "Masukkan NIM sebagai API Key (102022580023)",
+                "name": "X-IAE-KEY",
+                "in": "header"
+            },
+            "bearerAuth": {
+                "type": "http",
+                "description": "Bearer JWT dari IAE SSO (https://iae-sso.virtualfri.id/api/v1/auth/token)",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Kurikulum",
+            "description": "Kurikulum"
+        },
+        {
+            "name": "Nilai",
+            "description": "Nilai"
+        }
+    ]
+}
