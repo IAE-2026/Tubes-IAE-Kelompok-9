@@ -39,6 +39,16 @@ GET http://127.0.0.1:8080/api/v1/mahasiswa/102022400136/matkul
 X-API-KEY: KEY-MHS-233
 ```
 
+Response gabungan: `krs_aktif` (Service B) + `matkul_bernilai` (Service C) + `ringkasan.ips`.
+
+### Matkul dummy demo (setelah input nilai)
+```http
+GET http://127.0.0.1:8080/api/v1/mahasiswa/209907170001/matkul
+X-API-KEY: KEY-MHS-233
+```
+
+Cek `data.matkul_bernilai` untuk lihat nilai SI101, dan `data.ringkasan.ips` untuk IPS mahasiswa.
+
 ### Daftar mahasiswa baru (SOAP + RabbitMQ)
 ```http
 POST http://127.0.0.1:8080/api/v1/mahasiswa
@@ -118,18 +128,19 @@ Content-Type: application/json
 
 ## 3. Service C — Andi (Nilai & Kurikulum)
 
-**Header:** `X-IAE-KEY: 102022580023`
+**Header GET:** `X-IAE-KEY: KEY-MHS-117`  
+**Header POST nilai:** `X-IAE-KEY: KEY-MHS-117` + `Authorization: Bearer <JWT_dosen>`
 
 ### List kurikulum
 ```http
 GET http://127.0.0.1:8080/api/v1/kurikulum
-X-IAE-KEY: 102022580023
+X-IAE-KEY: KEY-MHS-117
 ```
 
 ### Nilai per NIM
 ```http
 GET http://127.0.0.1:8080/api/v1/nilai/102022400136
-X-IAE-KEY: 102022580023
+X-IAE-KEY: KEY-MHS-117
 ```
 
 ### Input nilai (SOAP + RabbitMQ)
@@ -142,18 +153,18 @@ php artisan iae:sync-token
 
 ```http
 POST http://127.0.0.1:8080/api/v1/nilai
-X-IAE-KEY: 102022580023
+X-IAE-KEY: KEY-MHS-117
 Authorization: Bearer <JWT_dosen>
 Content-Type: application/json
 
 {
-  "nim": "102022580023",
-  "kode_matkul": "SI401",
-  "nama_matkul": "Integrasi Aplikasi Enterprise",
+  "nim": "209907170001",
+  "kode_matkul": "SI101",
+  "nama_matkul": "Algoritma dan Pemrograman",
   "nilai_huruf": "A",
   "nilai_angka": 4,
   "sks": 3,
-  "semester": 4,
+  "semester": 1,
   "tahun_ajaran": "2025/2026"
 }
 ```
