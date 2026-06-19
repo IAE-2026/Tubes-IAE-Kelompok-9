@@ -155,4 +155,25 @@ Transaksi penting SOAP dan transaksi RabbitMQ saya pakai endpoint yang sama yait
 
 ---
 
+## 9. Testing lewat Monorepo (Gateway port 8080)
+
+Setelah merge ke `Tubes-IAE-Kelompok-9`, semua request Postman ke Service C lewat gateway:
+
+```http
+GET  http://127.0.0.1:8080/api/v1/kurikulum
+POST http://127.0.0.1:8080/api/v1/nilai
+X-IAE-KEY: KEY-MHS-117
+```
+
+POST nilai tambahkan `Authorization: Bearer <JWT warga01>`. Verifikasi nilai tersimpan bisa lewat Service A:
+
+```http
+GET http://127.0.0.1:8080/api/v1/mahasiswa/{nim}/matkul
+X-API-KEY: KEY-MHS-233
+```
+
+Contoh uji 19 Juni 2026: NIM `209907170001` matkul SI101 nilai A, IPS 4.0, receipt SOAP dan event `nilai.recorded` muncul di board TEAM-09.
+
+---
+
 Analisis Tugas 3 Service C TIM-09 NIM 102022580023
