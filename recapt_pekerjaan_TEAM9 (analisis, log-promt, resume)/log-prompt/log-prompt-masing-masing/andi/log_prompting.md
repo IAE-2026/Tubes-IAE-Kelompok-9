@@ -653,6 +653,48 @@ Recap prompt saya ke **Cursor AI** dari eksekusi merge tim sampai update log ini
 
 ---
 
+**[19 Jun ~17:00 WIB · perkiraan] Prompt 57**  
+> Saya mau input nilai di Service C untuk mahasiswa dummy NIM 209907170001. Header Postman-nya apa aja?
+
+**Hasil:** AI jelasin POST `/api/v1/nilai` wajib `X-IAE-KEY: KEY-MHS-117` plus Bearer JWT dari login **warga01** (dosen). Body JSON pakai `kode_matkul`, bukan `kode_mata_kuliah`. M2M token di `.env` urusan server lewat `php artisan iae:sync-token`.
+
+---
+
+**[19 Jun ~17:15 WIB · perkiraan] Prompt 58**  
+> Bukannya Service B dan C metodenya sama? Acc KRS sama input nilai harusnya pakai JWT dosen kan?
+
+**Hasil:** AI koreksi penjelasan sebelumnya. Service B: JWT **atau** `X-IAE-KEY` (bypass role saat testing). Service C POST nilai: **wajib keduanya** (key + JWT dosen). Acc KRS resmi memang JWT dosen; shortcut tim bisa key saja di B.
+
+---
+
+**[19 Jun ~17:30 WIB · perkiraan] Prompt 59**  
+> Saya mau lihat nilai lewat Service A, endpointnya apa?
+
+**Hasil:** AI arahkan ke `GET /api/v1/mahasiswa/{nim}/matkul` dengan `X-API-KEY: KEY-MHS-233`. Nilai muncul di field `matkul_bernilai`. Test live: SI101 NIM 209907170001 sudah bernilai A, IPS 4.0.
+
+---
+
+**[19 Jun ~17:40 WIB · perkiraan] Prompt 60**  
+> Jafar mau merge PR tapi conflict rebase. Gimana resolve-nya?
+
+**Hasil:** Conflict karena folder `services/krs/` sudah rename di main. Solusi: `git rm` path lama, pindahkan isi ke `services/102022400045-Mochammad Jafar Arrazi-KRS/`, lanjut `git rebase --continue`, push `--force-with-lease`. Rebase selesai di lokal (6 commit Jafar tetap).
+
+---
+
+**[19 Jun ~18:00 WIB · perkiraan] Prompt 61**  
+> Saya kerja di main, commit count GitHub masih 6. Gimana nambah commit yang bener?
+
+**Hasil:** Angka 6 itu dari PR Jafar (committer), bukan total Andi di main (~18 commit). Rencana 10 commit kecil di main: docs Service C, recapt tim, routing-map, troubleshooting. Satu commit satu file, push ke `origin main`.
+
+---
+
+**[19 Jun ~18:10 WIB · exact, prompt ini] Prompt 62**  
+> Boleh, mulai commit 1 update log prompting Modul 5.
+
+**Hasil:** Tambah Prompt 57–62 (sesi sore 19 Jun) ke log recap tim.
+
+---
+
 ## Timeline kronologis lengkap
 
 ### Rabu, 17 Juni 2026
@@ -688,6 +730,11 @@ Recap prompt saya ke **Cursor AI** dari eksekusi merge tim sampai update log ini
 - ~11:15–11:25 WIB: simulasi maba + 3 KRS + 3 approve
 - ~11:35 WIB: fix KRS maba tanpa riwayat nilai
 - ~12:00–13:15 WIB: rapikan folder recap tim (copy file asli, bukan tulis analisis/resume baru)
+- **~17:00 WIB:** testing POST nilai Service C (JWT warga01 + KEY-MHS-117)
+- **~17:15 WIB:** klarifikasi auth JWT Service B vs C
+- **~17:30 WIB:** GET matkul agregasi Service A, cek nilai dummy
+- **~17:40 WIB:** bantu resolve rebase conflict PR Jafar
+- **~18:00–18:10 WIB:** rencana commit di main + update log Modul 5 sore
 
 ---
 
@@ -697,4 +744,4 @@ Sesi Tugas Besar jauh lebih berat dari Tugas 3 individu, urusan tim, gateway, se
 
 AI saya pakai sekitar **80%** buat coding, debugging, sama bantu struktur folder dokumentasi tim. Keputusan akhir tetap saya cek: receipt SOAP ada nggak, badge event muncul nggak, Postman 401 kenapa. **Analisis Tugas 3** (`analisis_tugas_3.md`) dan **resume individu** (`RESUME_ANDI.md`) saya tulis sendiri pas Modul 1–4, di Modul 5 cuma di-copy ke folder tim, bukan dibuat ulang AI. Rename ke **Nilai & Kurikulum** cuma dokumentasi, yang jalan tetap KEY-MHS-117, NIM 102022580023, Docker network internal.
 
-Log Prompting Service C TIM-09 NIM 102022580023, update 19 Juni 2026, ~13:15 WIB (Modul 5 + detail waktu)
+Log Prompting Service C TIM-09 NIM 102022580023, update 19 Juni 2026, ~18:10 WIB (Modul 5 + sesi sore testing & git)
