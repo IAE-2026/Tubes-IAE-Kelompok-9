@@ -21,7 +21,7 @@ Dokumentasi gateway: **[gateway/README.md](gateway/README.md)** · [routing-map.
 
 ## Dokumentasi Penilaian (TIM-09)
 
-Lihat **[recapt_penkerjaan_TEAM9 (analisis, log-promt, resume)/README.md](recapt_penkerjaan_TEAM9%20(analisis,%20log-promt,%20resume)/README.md)** untuk log-prompt, resume kontribusi, dan analisis Education System per anggota.
+Lihat **[recapt_pekerjaan_TEAM9 (analisis, log-promt, resume)/README.md](recapt_pekerjaan_TEAM9%20(analisis,%20log-promt,%20resume)/README.md)** untuk log-prompt, resume kontribusi, dan analisis Education System per anggota.
 
 ## Tutorial Lengkap
 
