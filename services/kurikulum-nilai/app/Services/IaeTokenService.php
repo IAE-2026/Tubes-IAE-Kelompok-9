@@ -75,9 +75,14 @@ class IaeTokenService
         $password = config('services.iae.warga_password');
 
         if ($apiKey) {
-            $response = Http::timeout(15)->post("{$baseUrl}/api/v1/auth/token", [
-                'api_key' => $apiKey,
-            ]);
+            $nim = config('services.iae.owner_nim');
+            $payload = ['api_key' => $apiKey];
+
+            if ($nim) {
+                $payload['nim'] = $nim;
+            }
+
+            $response = Http::timeout(15)->post("{$baseUrl}/api/v1/auth/token", $payload);
 
             if ($response->successful()) {
                 return $response;

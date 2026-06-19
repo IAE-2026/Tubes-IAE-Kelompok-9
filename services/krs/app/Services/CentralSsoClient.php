@@ -14,11 +14,14 @@ class CentralSsoClient
 
     protected string $teamId;
 
+    protected string $ownerNim;
+
     public function __construct()
     {
         $this->baseUrl = rtrim(config('iae.sso.url', 'https://iae-sso.virtualfri.id'), '/');
         $this->apiKey = config('iae.api_key', 'KEY-MHS-109');
         $this->teamId = config('iae.sso.team_id', 'TEAM-09');
+        $this->ownerNim = (string) config('iae.sso.owner_nim', '102022400045');
     }
 
     /**
@@ -26,12 +29,21 @@ class CentralSsoClient
      */
     public function getM2mToken(): ?string
     {
-        return Cache::remember('iae_m2m_token', 3000, function () {
+        $cacheKey = 'iae_m2m_token_'.md5($this->apiKey.$this->ownerNim);
+
+        return Cache::remember($cacheKey, 3000, function () {
+            if ($this->ownerNim === '') {
+                Log::warning('IAE_OWNER_NIM belum dikonfigurasi untuk token M2M.');
+
+                return null;
+            }
+
             try {
                 $response = Http::timeout(5)
                     ->acceptJson()
                     ->post($this->baseUrl.'/api/v1/auth/token', [
                         'api_key' => $this->apiKey,
+                        'nim' => $this->ownerNim,
                     ]);
 
                 if ($response->successful()) {

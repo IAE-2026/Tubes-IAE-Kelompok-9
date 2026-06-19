@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 // SSO Routes - tidak perlu API Key
 Route::prefix('v1')->group(function () {
+    Route::post('/auth/token', [SsoController::class, 'token']);
     Route::post('/auth/login', [SsoController::class, 'login']);
     Route::get('/auth/profile', [SsoController::class, 'profile']);
 });

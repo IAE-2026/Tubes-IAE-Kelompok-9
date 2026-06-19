@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'sso' => [
+        'url' => rtrim(env('IAE_SSO_URL', 'https://iae-sso.virtualfri.id'), '/'),
+        'owner_nim' => env('IAE_OWNER_NIM', '102022400136'),
+    ],
+
     'services' => [
         'krs' => [
             'url' => rtrim(env('KRS_SERVICE_URL', 'http://krs-service:8000'), '/'),

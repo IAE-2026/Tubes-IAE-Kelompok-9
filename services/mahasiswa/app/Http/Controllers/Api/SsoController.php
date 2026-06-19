@@ -11,6 +11,33 @@ class SsoController extends Controller
 {
     protected $ssoUrl = 'https://iae-sso.virtualfri.id';
 
+    /**
+     * Token M2M — proxy ke Cloud Pusat (wajib api_key + nim).
+     * Contoh: POST /api/v1/auth/token {"api_key":"KEY-MHS-233","nim":"102022400136"}
+     */
+    public function token(Request $request)
+    {
+        $validated = $request->validate([
+            'api_key' => 'required|string',
+            'nim'     => 'required|string|max:20',
+        ]);
+
+        $response = Http::post("{$this->ssoUrl}/api/v1/auth/token", $validated);
+
+        if (! $response->successful()) {
+            return response()->json(
+                $response->json() ?? [
+                    'success' => false,
+                    'message' => 'Gagal mengambil token M2M dari Cloud Pusat.',
+                    'data'    => null,
+                ],
+                $response->status()
+            );
+        }
+
+        return response()->json($response->json(), $response->status());
+    }
+
     public function login(Request $request)
     {
         $validated = $request->validate([

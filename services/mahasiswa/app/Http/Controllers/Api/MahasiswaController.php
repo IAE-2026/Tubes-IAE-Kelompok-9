@@ -258,23 +258,25 @@ class MahasiswaController extends Controller
      */
     private function getM2MToken(): ?string
     {
-        $ssoUrl = 'https://iae-sso.virtualfri.id';
+        $ssoUrl = config('iae.sso.url', 'https://iae-sso.virtualfri.id');
         $apiKey = config('app.api_key');
+        $nim = config('iae.sso.owner_nim');
 
-        if (!$apiKey) {
+        if (! $apiKey || ! $nim) {
             return null;
         }
 
         try {
             $response = \Illuminate\Support\Facades\Http::post("{$ssoUrl}/api/v1/auth/token", [
                 'api_key' => $apiKey,
+                'nim'     => $nim,
             ]);
 
             if ($response->successful()) {
                 return $response->json()['token'] ?? null;
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Failed to retrieve M2M token: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to retrieve M2M token: '.$e->getMessage());
         }
 
         return null;
