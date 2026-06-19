@@ -12,7 +12,7 @@ class GraphqlTest extends TestCase
 
     private function headers(): array
     {
-        return ['X-IAE-KEY' => '102022400045'];
+        return ['X-IAE-KEY' => config('iae.api_key')];
     }
 
     public function test_graphql_query_returns_selected_krs_fields(): void
