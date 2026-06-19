@@ -74,7 +74,27 @@ Gunakan GraphiQL untuk melakukan query data kurikulum dan nilai:
 ### 3. Keamanan (X-IAE-KEY)
 Setiap request ke API wajib menyertakan header keamanan berikut:
 - **Header Key**: `X-IAE-KEY`
-- **Value**: `102022580023` (NIM Anda)
+- **Value**: `KEY-MHS-117` (API key tim Service C)
+
+POST `/api/v1/nilai` **tambahan** wajib Bearer JWT dosen (login warga01 ke cloud pusat).
+
+### 4. Monorepo & Gateway (Tugas Besar)
+
+Saat dijalankan lewat monorepo kelompok, akses **hanya** via API Gateway:
+
+```text
+http://127.0.0.1:8080/api/v1/nilai
+http://127.0.0.1:8080/api/v1/kurikulum
+```
+
+Sebelum POST nilai (SOAP + RabbitMQ), sync token M2M dari **host Mac** (bukan di dalam container):
+
+```bash
+cd "services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum"
+php artisan iae:sync-token
+```
+
+Perintah ini mengisi `IAE_SSO_TOKEN` di `.env` untuk audit SOAP dan publish RabbitMQ. JWT dosen di Postman **terpisah** — ambil dari login warga01.
 
 ---
 
