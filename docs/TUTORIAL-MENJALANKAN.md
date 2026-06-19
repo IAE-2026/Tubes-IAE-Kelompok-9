@@ -2,6 +2,8 @@
 
 Panduan ini untuk **Arneta** (Service A), **Jafar** (Service B), dan **Andi** (Service C) agar paham cara menjalankan dan menguji sistem gabungan.
 
+> Index semua dokumen: [README.md](README.md) · Auth: [auth-dan-token.md](auth-dan-token.md) · Cloud: [integrasi-cloud.md](integrasi-cloud.md) · Gateway: [../gateway/README.md](../gateway/README.md)
+
 ---
 
 ## 1. Gambaran Arsitektur
@@ -14,7 +16,7 @@ Panduan ini untuk **Arneta** (Service A), **Jafar** (Service B), dan **Andi** (S
                                │          │          │
                     ┌──────────▼──┐  ┌────▼────┐  ┌──▼──────────────┐
                     │  Service A  │  │Service B│  │    Service C     │
-                    │  Mahasiswa  │  │   KRS   │  │ Kurikulum & Nilai│
+                    │  Mahasiswa  │  │   KRS   │  │ Nilai & Kurikulum│
                     │  (Arneta)   │  │ (Jafar) │  │     (Andi)       │
                     └──────┬──────┘  └────┬────┘  └────────┬─────────┘
                            │              │                   │
@@ -56,12 +58,22 @@ Struktur folder utama:
 
 ```
 Tubes-IAE-Kelompok-9/
-├── docker-compose.yml      ← orkestrator semua service
-├── gateway/nginx.conf      ← routing API Gateway
+├── docker-compose.yml
+├── docs/                   ← dokumentasi tim (folder ini)
+│   ├── README.md
+│   ├── TUTORIAL-MENJALANKAN.md
+│   ├── arsitektur-sistem.md
+│   ├── auth-dan-token.md
+│   ├── integrasi-cloud.md
+│   └── troubleshooting.md
+├── gateway/
+│   ├── README.md           ← penjelasan gateway TIM-09
+│   ├── routing-map.md      ← tabel routing + contoh Postman
+│   └── nginx.conf          ← config routing
 └── services/
-    ├── mahasiswa/          ← Service A (Arneta)
-    ├── krs/                ← Service B (Jafar)
-    └── kurikulum-nilai/    ← Service C (Andi)
+    ├── 102022400136-Arneta Alifiana-Data Mahasiswa/     ← Service A (Arneta)
+    ├── 102022400045-Mochammad Jafar Arrazi-KRS/         ← Service B (Jafar)
+    └── 102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum/  ← Service C (Andi)
 ```
 
 ---
@@ -123,9 +135,9 @@ docker compose up -d --build
 
 | Service | Folder | Pemilik | Header Auth | Nilai |
 |---------|--------|---------|-------------|-------|
-| **A** — Mahasiswa | `services/mahasiswa` | Arneta | `X-API-KEY` | `KEY-MHS-233` |
-| **B** — KRS | `services/krs` | Jafar | `X-IAE-KEY` | `102022400045` |
-| **C** — Kurikulum & Nilai | `services/kurikulum-nilai` | Andi | `X-IAE-KEY` | `102022580023` |
+| **A** — Mahasiswa | `services/102022400136-Arneta Alifiana-Data Mahasiswa` | Arneta | `X-API-KEY` | `KEY-MHS-233` |
+| **B** — KRS | `services/102022400045-Mochammad Jafar Arrazi-KRS` | Jafar | `X-IAE-KEY` | `KEY-MHS-109` |
+| **C** — Nilai & Kurikulum | `services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum` | Andi | `X-IAE-KEY` | `102022580023` |
 
 **Base URL semua request:** `http://127.0.0.1:8080`
 
@@ -137,6 +149,7 @@ docker compose up -d --build
 |----------------------|---------------|
 | `/api/v1/mahasiswa` | Service A |
 | `/api/v1/mahasiswa/{nim}/matkul` | Service A (agregasi B + C) |
+| `/api/v1/auth` | Service A |
 | `/api/v1/krs` | Service B |
 | `/api/v1/kurikulum` | Service C |
 | `/api/v1/nilai` | Service C |
@@ -194,13 +207,13 @@ Cek board: https://iae-sso.virtualfri.id/board → cari `mahasiswa.created`.
 **Lihat semua KRS**
 ```
 GET http://127.0.0.1:8080/api/v1/krs
-Header: X-IAE-KEY = 102022400045
+Header: X-IAE-KEY = KEY-MHS-109
 ```
 
 **Submit KRS baru**
 ```
 POST http://127.0.0.1:8080/api/v1/krs
-Header: X-IAE-KEY = 102022400045
+Header: X-IAE-KEY = KEY-MHS-109
 Header: Content-Type = application/json
 
 Body:
@@ -225,7 +238,7 @@ Header: Authorization = Bearer <JWT_dosen>
 
 ---
 
-### Untuk Andi — Service C (Kurikulum & Nilai)
+### Untuk Andi — Service C (Nilai & Kurikulum)
 
 **List kurikulum**
 ```
@@ -240,12 +253,22 @@ Header: X-IAE-KEY = 102022580023
 ```
 
 **Tambah nilai (butuh JWT dosen + SOAP/RabbitMQ)**
+
+Sebelum POST, sync token M2M dari folder service Andi:
+
+```bash
+cd "services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum"
+php artisan iae:sync-token
+```
+
 ```
 POST http://127.0.0.1:8080/api/v1/nilai
 Header: X-IAE-KEY = 102022580023
 Header: Authorization = Bearer <JWT_dosen>
 Header: Content-Type = application/json
 ```
+
+Detail auth: [auth-dan-token.md](auth-dan-token.md)
 
 ---
 
@@ -299,6 +322,8 @@ Setelah `docker compose up`, data contoh sudah terisi:
 
 ## 10. Troubleshooting
 
+Lihat panduan lengkap: **[troubleshooting.md](troubleshooting.md)**
+
 | Masalah | Solusi |
 |---------|--------|
 | `Connection refused` port 8080 | Jalankan `docker compose up -d` |
@@ -339,7 +364,7 @@ docker compose logs -f gateway
 |---------|---------|-----------------|
 | Arneta Alifiana | A — Mahasiswa | SOAP `MahasiswaBaru`, event `mahasiswa.created` |
 | Jafar Arrazi | B — KRS | Validasi lintas service, event `krs.created` |
-| Andi Saputra | C — Kurikulum & Nilai | Kurikulum, nilai, event `nilai.recorded` |
+| Andi Saputra | C — Nilai & Kurikulum | Kurikulum, nilai, event `nilai.recorded` |
 | Semua | Gateway + Compose | Orkestrasi Docker, routing Nginx |
 
 ---
