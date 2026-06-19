@@ -37,6 +37,20 @@ Ketiganya nyambung jadi satu alur akademik: maba masuk, isi KRS, dosen approve, 
 
 ---
 
+## Ketentuan token M2M (update dosen)
+
+Dosen minta body POST `/api/v1/auth/token` untuk M2M **wajib** ada `api_key` dan `nim` owner service. Di TIM-09:
+
+| Service | api_key | nim |
+|---------|---------|-----|
+| A (Arneta) | KEY-MHS-233 | 102022400136 |
+| B (Jafar) | KEY-MHS-109 | 102022400045 |
+| C (Andi) | KEY-MHS-117 | 102022580023 |
+
+Arneta jelasin di analisisnya: pas POST mahasiswa, server A otomatis minta token pakai pasangan itu. Jafar tulis di `CentralSsoClient` logic yang sama sebelum SOAP/RabbitMQ KRS. Andi sync lewat `iae:sync-token` di Service C. Semua bisa dites lewat `POST http://127.0.0.1:8080/api/v1/auth/token`.
+
+---
+
 ## Analisis per service (ringkas)
 
 ### Service A: Daftar mahasiswa baru (Arneta)

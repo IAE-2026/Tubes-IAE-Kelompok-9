@@ -67,7 +67,9 @@ Content-Type: application/json
 
 Cek: `receipt_number` + `rabbit_status: "terkirim"` + board `mahasiswa.created`.
 
-### Token M2M (via gateway)
+### Token M2M (via gateway) — ketentuan dosen: `api_key` + `nim`
+
+**Service A (Arneta)** — pas POST mahasiswa, server minta token otomatis:
 ```http
 POST http://127.0.0.1:8080/api/v1/auth/token
 Content-Type: application/json
@@ -77,6 +79,24 @@ Content-Type: application/json
   "nim": "102022400136"
 }
 ```
+
+**Service B (Jafar)** — sebelum SOAP/RabbitMQ KRS:
+```http
+POST http://127.0.0.1:8080/api/v1/auth/token
+Content-Type: application/json
+
+{
+  "api_key": "KEY-MHS-109",
+  "nim": "102022400045"
+}
+```
+
+**Service C (Andi)** — sync token di laptop sebelum POST nilai:
+```bash
+cd "services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum"
+php artisan iae:sync-token
+```
+(body internal: `KEY-MHS-117` + `102022580023`)
 
 ---
 

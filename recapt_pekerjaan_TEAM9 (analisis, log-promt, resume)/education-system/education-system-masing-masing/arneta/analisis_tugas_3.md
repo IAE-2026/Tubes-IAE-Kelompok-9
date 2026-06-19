@@ -16,7 +16,22 @@ yang terus nanti tuh XML nya bakalan di krim ke server pusat. jika server pusat 
 - penjelasannya : 
 
 Client/admin mengirimkan perintah unutk menambah mahasiswa baru lwat API Gateway dengan membawa API Key nya sendiri (KEY-MHS-233), trs si API Gateway nya itu meneruskan nnya ke MahasiswaController, nah di MahasiswaController ini ada data maba nya kaya (NIM, nama, EMAIL), nah dia tuh bakalan di validasi dulu, klo data nya valid dia bakalan nyuruh Entity Mahasiswa untuk menyimpan data nya ke database dan database nya akan memberikan respons kalo udah di simpen.
-Karena mau menyambungkannya ke Cloud Dosen jadi MahasiwaController harus punya akses masuk dengan mengirimkan request login M2M ke SSO Server menggunakan API Key kelompok 09, dan nanti tuh si SSO Server nya bakalan memverifikasi API nya dan mengirimkan balik Token M2M JWT khusus untuk Team-09.
+Karena mau menyambungkannya ke Cloud Dosen jadi MahasiwaController harus punya akses masuk dengan mengirimkan request login M2M ke SSO Server menggunakan API Key kelompok 09 **dan NIM owner service (102022400136)** — sesuai ketentuan dosen terbaru body-nya `{ "api_key": "KEY-MHS-233", "nim": "102022400136" }`, dan nanti tuh si SSO Server nya bakalan memverifikasi pasangan key + nim itu lalu mengirimkan balik Token M2M JWT khusus untuk Team-09.
 Trs MahasiswaController nya itu akan memanggil SoapAuditService untuk mengurus audit resmi nya, di SoapAuditService itu data mahasiswa yang tadi akan di konversi ke format XML, nah trs dia bakalan menembak server SOAP Audit Server di pusat menggunakan token M2M tadi. Nah di bagian ini ada dua kemungkinan, klo respon SOAP nya sukses dia bakalan ngasih ReceiptNumber trs si SoapAuditServices nya itu akan mengekstrak nomor nya trs nyuruh Entitiy AuditLog untuk menyimpan log dengan status success dan receipt_number nya ke database. Tapi klo misal respon SOAP nya gagal atau timeout, dia bakalan nyuruh Entity AuditLog buat nyimpen log dengan status failed dan receipt_number nya di set null, trs dia melapor balik ke MahasiswaController.
 Trs Mahasiswa Controller nya akan memanggil RabbitMQ untuk menyebarkan informasi ke service B dan C, nah si RabbitMQServices nya ini akan menyusun payload event JSON dengan routing key mahasiswa.created. Trs RabbitMQService nya akan megirim pesan tersebut ke RabbitMQ Broker terpusat. Nah di sini juga ada dua kemungkinan, klo publish RabbitMQ nya sukses dia bakalan ngasih respon sukses dan ngirim status terkirim ke controller, tapi klo publish nya gagal dia bakalan ngirim status gagal ke controller.
 Setelah semua proses database lokal, SOAP audit dan RabbitMQ nya beres, MahasiswaController mengirimkan pesan sukses 201 Created ke API Gateway, dan nanti si API Gateway nya itu bakalan ngasih responnya balik ke client/admin.
+
+---
+
+## Update ketentuan token M2M (dosen)
+
+Dosen nambahin aturan: request ke `/api/v1/auth/token` buat M2M **wajib** ada `api_key` **dan** `nim`. Di service-ku, pas POST mahasiswa butuh token buat SOAP/RabbitMQ, aku kirim:
+
+```json
+{
+  "api_key": "KEY-MHS-233",
+  "nim": "102022400136"
+}
+```
+
+Bisa lewat gateway tim: `POST http://127.0.0.1:8080/api/v1/auth/token`. Kalau cuma kirim `api_key` tanpa `nim`, cloud nolak. Endpoint proxy-nya ada di `SsoController` service A.

@@ -23,7 +23,7 @@ Fokus utama penggunaan AI dalam tugas ini adalah untuk memandu arsitektur kode i
 Memberikan panduan implementasi M2M Auth:
 - Menyarankan penyimpanan API Key di `.env` (seperti `API_KEY=KEY-MHS-233`) dan mendaftarkannya di `config/app.php`.
 - Menyarankan pembuatan method privat `getM2MToken()` di dalam `MahasiswaController.php`.
-- Menggunakan `Illuminate\Support\Facades\Http` untuk melakukan POST request ke `https://iae-sso.virtualfri.id/api/v1/auth/token` dengan payload `{ "api_key": "KEY-MHS-233" }`.
+- Menggunakan `Illuminate\Support\Facades\Http` untuk POST ke `/api/v1/auth/token` dengan payload `{ "api_key": "KEY-MHS-233", "nim": "102022400136" }` (ketentuan dosen: wajib api_key + nim).
 - Mengekstrak string `token` dari respon JSON untuk digunakan sebagai Bearer Token pada request berikutnya.
 
 **Hasil:** Token M2M berhasil diambil secara dinamis di latar belakang aplikasi setiap kali endpoint registrasi mahasiswa dipanggil.

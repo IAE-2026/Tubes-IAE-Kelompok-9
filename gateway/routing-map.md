@@ -18,7 +18,35 @@ Semua request di bawah ini **harus** lewat gateway, bukan langsung ke port `8001
 | GET | `/api/v1/mahasiswa/{nim}/matkul` | Agregasi KRS + nilai (Http::pool) |
 | POST | `/api/v1/mahasiswa` | Daftar maba baru → **SOAP + RabbitMQ** |
 | POST | `/api/v1/auth/login` | Login SSO (forward ke Service A) |
-| POST | `/api/v1/auth/token` | Token M2M `{ api_key, nim }` |
+| POST | `/api/v1/auth/token` | Token M2M `{ api_key, nim }` — proxy ke Service A |
+
+**Contoh M2M per service (ketentuan dosen):**
+
+```http
+# Service A — Arneta
+POST http://127.0.0.1:8080/api/v1/auth/token
+Content-Type: application/json
+
+{"api_key":"KEY-MHS-233","nim":"102022400136"}
+```
+
+```http
+# Service B — Jafar
+POST http://127.0.0.1:8080/api/v1/auth/token
+Content-Type: application/json
+
+{"api_key":"KEY-MHS-109","nim":"102022400045"}
+```
+
+```http
+# Service C — Andi
+POST http://127.0.0.1:8080/api/v1/auth/token
+Content-Type: application/json
+
+{"api_key":"KEY-MHS-117","nim":"102022580023"}
+```
+
+Response sukses: `"token_type":"m2m"`, `"team":"TEAM-09"`.
 
 **Contoh Postman — GET matkul:**
 

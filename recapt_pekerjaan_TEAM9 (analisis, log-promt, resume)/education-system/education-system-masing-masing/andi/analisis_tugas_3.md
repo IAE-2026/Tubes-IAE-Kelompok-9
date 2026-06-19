@@ -20,9 +20,9 @@ Untuk transaksi penting SOAP, saya pilih POST /api/v1/nilai. Setiap nilai dicata
 
 Sebelum input nilai, user harus login ke Cloud Pusat dulu dan dapat JWT. Service C verifikasi JWT itu, lalu cek role lokal. Yang boleh input nilai cuma dosen dan admin. Akun warga01@ktp.iae.id saya mapping sebagai dosen buat testing di Postman.
 
-Awalnya saya juga bingung karena kayanya banyak key sekaligus. Setelah dicoba, ternyata beda fungsi. X-IAE-KEY itu bukan token, cuma NIM saya 102022580023 di header setiap request ke Service C. JWT dosen dari login warga01, dipakai sebagai Bearer saat POST /nilai, dan tidak diambil dari .env. KEY-MHS-117 adalah API Key tim, dipakai server lewat perintah php artisan iae:sync-token buat dapat IAE_SSO_TOKEN di .env. Token .env itu yang dipakai Service C saat kirim SOAP dan RabbitMQ ke Cloud Pusat.
+Awalnya saya juga bingung karena kayanya banyak key sekaligus. Setelah dicoba, ternyata beda fungsi. **`X-IAE-KEY`** di header Postman isinya **`KEY-MHS-117`** buat masuk ke Service C. JWT dosen dari login warga01 dipakai sebagai Bearer saat POST /nilai. **`KEY-MHS-117` + NIM `102022580023`** dipakai bareng di body request M2M ke cloud (`api_key` + `nim` owner), lewat `php artisan iae:sync-token` atau hit manual `/api/v1/auth/token`. Token hasil sync masuk `.env` buat SOAP dan RabbitMQ, bukan JWT di Postman.
 
-X-IAE-KEY tidak bisa diganti KEY-MHS-117 meskipun sama-sama disebut key. Middleware CheckIaeKey di Service C cuma terima NIM 102022580023. Kalau di Postman isi KEY-MHS-117, langsung 401. NIM di header X-IAE-KEY juga beda dengan NIM di body POST /nilai. Header tetap NIM saya, body bisa NIM mahasiswa lain misalnya 2099000020. Jadi layer masuk ke Service C pakai X-IAE-KEY plus JWT, layer keluar ke Cloud Pusat pakai token dari sync-token.
+NIM di body POST /nilai bisa beda (NIM mahasiswa yang dinilai). NIM di body token M2M tetap NIM owner service saya.
 
 Contoh response sukses POST /nilai:
 
@@ -124,7 +124,24 @@ Saat testing, board menampilkan pengirim dari tim saya TEAM-09.
 
 ## 6. Cara Testing di Postman
 
-Sebelum testing jalankan ./vendor/bin/sail up -d lalu php artisan iae:sync-token dari host. Langkah 1, POST ke https://iae-sso.virtualfri.id/api/v1/auth/token dengan body email warga01@ktp.iae.id dan password akun lab, copy field token untuk Bearer. Langkah 2 opsional, POST ke URL yang sama dengan body api_key KEY-MHS-117, kalau dapat token_type m2m dan team TEAM-09 berarti API Key aktif. Langkah 3, GET http://localhost:8000/api/v1/kurikulum dengan header X-IAE-KEY 102022580023 saja. Langkah 4, POST http://localhost:8000/api/v1/nilai dengan header Content-Type application/json, X-IAE-KEY 102022580023, Authorization Bearer JWT, dan body:
+Sebelum testing jalankan `docker compose up -d` (monorepo) lalu `php artisan iae:sync-token` dari host Mac.
+
+**Langkah 1 — JWT dosen (bukan M2M):** POST ke cloud dengan email/password warga01, copy `token` untuk Bearer.
+
+**Langkah 2 — cek M2M (opsional):** POST ke gateway dengan body ketentuan dosen:
+
+```json
+{
+  "api_key": "KEY-MHS-117",
+  "nim": "102022580023"
+}
+```
+
+Kalau dapat `token_type: m2m` dan `team: TEAM-09`, API key tim aktif.
+
+**Langkah 3:** GET `http://127.0.0.1:8080/api/v1/kurikulum` dengan header `X-IAE-KEY: KEY-MHS-117`.
+
+**Langkah 4:** POST `http://127.0.0.1:8080/api/v1/nilai` dengan `X-IAE-KEY: KEY-MHS-117`, `Authorization: Bearer <JWT>`, dan body:
 
 ```json
 {
@@ -139,7 +156,7 @@ Sebelum testing jalankan ./vendor/bin/sail up -d lalu php artisan iae:sync-token
 }
 ```
 
-Kalau sukses dapat 201 dengan receipt_number dan event_published true, cek board iae-sso.virtualfri.id. Error yang sering saya temui: X-IAE-KEY salah kalau isi KEY-MHS-117, harus NIM 102022580023. JWT expired ulang login. SOAP gagal biasanya token .env expired, jalankan sync-token lagi.
+Kalau sukses dapat 201 dengan receipt_number dan event_published true, cek board iae-sso.virtualfri.id. Error yang sering saya temui: lupa isi `nim` di body token M2M, JWT expired (login ulang), atau SOAP gagal karena belum `sync-token`.
 
 ---
 
