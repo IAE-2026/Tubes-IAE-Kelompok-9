@@ -18,4 +18,6 @@ Integrasi ke service lain: waktu dosen catat nilai, Service C ngecek dulu ke Ser
 
 Pas gabung ke monorepo kelompok, Service C jalan bareng Service A dan B lewat API Gateway port 8080. Jadi alur akademik TIM-09 bisa kita uji end-to-end dari satu repo, bukan cuma service saya sendiri.
 
+Di Tugas Besar saya juga ikut harmonisasi integrasi tim: mapping header auth per service di gateway, selaraskan token M2M `{ api_key, nim }`, dan bantu debug alur POST nilai lewat gateway (wajib `X-IAE-KEY: KEY-MHS-117` plus Bearer JWT warga01). Untuk lihat hasil nilai dari sisi mahasiswa, Service A sediakan `GET /api/v1/mahasiswa/{nim}/matkul` yang menggabungkan KRS dan nilai dalam satu response.
+
 *Catatan: resume ini saya tulis sendiri berdasarkan pekerjaan Tugas 3 dan integrasi Tugas Besar. AI saya pakai mostly buat coding, bukan buat nulis resume ini dari nol.*
