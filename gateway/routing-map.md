@@ -56,7 +56,29 @@ Content-Type: application/json
 | GET | `/api/v1/krs` | Daftar KRS |
 | GET | `/api/v1/krs/{id}` | Detail KRS |
 | POST | `/api/v1/krs` | Ajukan KRS → **SOAP + RabbitMQ** `krs.created` |
-| PUT | `/api/v1/krs/{id}/approve` | Approve dosen → `krs.approved` |
+| PUT | `/api/v1/krs/{id}/approve` | Approve dosen (JWT) → `krs.approved` |
+
+**Contoh Postman — Approve KRS (JWT dosen):**
+
+```http
+PUT http://127.0.0.1:8080/api/v1/krs/1/approve
+Authorization: Bearer <JWT_dosen>
+Content-Type: application/json
+```
+
+Login JWT dosen (warga01):
+
+```http
+POST https://iae-sso.virtualfri.id/api/v1/auth/token
+Content-Type: application/json
+
+{
+  "email": "warga01@ktp.iae.id",
+  "password": "KtpDigital2026!"
+}
+```
+
+> Shortcut testing tim: bisa pakai `X-IAE-KEY: KEY-MHS-109` saja (role di-bypass). Alur resmi approve tetap JWT dosen.
 
 **Contoh Postman — POST KRS:**
 
@@ -80,8 +102,8 @@ Content-Type: application/json
 ## Service C — Nilai & Kurikulum (Andi)
 
 **Folder:** `services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum`  
-**Header wajib:** `X-IAE-KEY: 102022580023`  
-**POST /nilai tambahan:** `Authorization: Bearer <JWT dosen>`
+**Header wajib:** `X-IAE-KEY: KEY-MHS-117`  
+**POST /nilai tambahan:** `Authorization: Bearer <JWT dosen warga01>`
 
 | Method | Path gateway | Keterangan |
 |--------|--------------|------------|
@@ -95,21 +117,30 @@ Content-Type: application/json
 
 ```http
 POST http://127.0.0.1:8080/api/v1/nilai
-X-IAE-KEY: 102022580023
+X-IAE-KEY: KEY-MHS-117
 Authorization: Bearer eyJ...
 Content-Type: application/json
 
 {
-  "nim": "102022580023",
-  "kode_matkul": "SI401",
-  "nama_matkul": "Integrasi Aplikasi Enterprise",
+  "nim": "209907170001",
+  "kode_matkul": "SI101",
+  "nama_matkul": "Algoritma dan Pemrograman",
   "nilai_huruf": "A",
   "nilai_angka": 4,
   "sks": 3,
-  "semester": 4,
+  "semester": 1,
   "tahun_ajaran": "2025/2026"
 }
 ```
+
+**Verifikasi nilai lewat Service A (agregasi):**
+
+```http
+GET http://127.0.0.1:8080/api/v1/mahasiswa/209907170001/matkul
+X-API-KEY: KEY-MHS-233
+```
+
+Cek field `matkul_bernilai` dan `ringkasan.ips` di response.
 
 Sebelum POST nilai, jalankan di host (bukan di container):
 
