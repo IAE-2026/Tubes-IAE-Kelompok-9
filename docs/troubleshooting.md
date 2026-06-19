@@ -23,15 +23,34 @@ curl http://127.0.0.1:8080/        # gateway hidup?
 |--------|----------|--------|
 | Service A 401 | Header salah | Pakai `X-API-KEY: KEY-MHS-233` |
 | Service B 401 | Header salah | Pakai `X-IAE-KEY: KEY-MHS-109` |
-| Service C 401 | Isi KEY-MHS-117 di X-IAE-KEY | Harus `X-IAE-KEY: 102022580023` |
-| POST nilai 401 | JWT expired / tidak ada | Login ulang warga01, copy Bearer baru |
+| Service C 401 | Header salah | Pakai `X-IAE-KEY: KEY-MHS-117` |
+| POST nilai 401 (X-IAE-KEY) | Isi NIM di header | Middleware terima `KEY-MHS-117`, bukan NIM |
+| POST nilai 401 (JWT) | Bearer kosong / expired | Login ulang warga01, copy token baru |
+| POST nilai 502 | SOAP/RabbitMQ gagal setelah DB save | Jalankan `php artisan iae:sync-token`, cek internet |
 | Header "tidak valid" di Postman | Key di tab Params bukan Headers | Pindah ke tab **Headers** |
 
 Detail auth: [auth-dan-token.md](auth-dan-token.md)
 
 ---
 
-## Error 502 Bad Gateway
+## POST nilai Service C — error 401 / 502
+
+| Gejala | Penyebab | Solusi |
+|--------|----------|--------|
+| 401 "X-IAE-KEY tidak valid" | Header pakai NIM | Ganti ke `KEY-MHS-117` |
+| 401 "Bearer JWT diperlukan" | Tab Authorization kosong | Login warga01, paste Bearer |
+| 422 Validasi gagal | Body JSON kosong | Body → raw → JSON lengkap |
+| 502 integrasi audit gagal | `IAE_SSO_TOKEN` expired | `php artisan iae:sync-token` dari host Mac |
+| 201 tapi board kosong | Filter board salah | Buka board, filter **TEAM-09**, event `nilai.recorded` |
+
+Urutan wajib sebelum POST nilai:
+
+```bash
+cd "services/102022580023-Andi Muh. Arif Darma Saputra M-Nilai & Kurikulum"
+php artisan iae:sync-token
+```
+
+Lalu Postman: `X-IAE-KEY: KEY-MHS-117` + `Authorization: Bearer <JWT warga01>`.
 
 - Service backend belum ready (MySQL masih starting)
 - Tunggu 2–5 menit setelah `docker compose up`
